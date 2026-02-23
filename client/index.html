@@ -1,12 +1,25 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>hospital_management</title>
+    <title>Smart Hospital SaaS</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for Urdu/Sindhi -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu&display=swap" rel="stylesheet">
+    <style>
+      body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+      .font-urdu { font-family: 'Noto Nastaliq Urdu', serif; }
+      @media print {
+        .no-print { display: none !important; }
+        .print-only { display: block !important; }
+      }
+      .print-only { display: none; }
+    </style>
   </head>
-  <body>
+  <body class="bg-gray-50">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

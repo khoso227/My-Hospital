@@ -1,18 +1,19 @@
 const express = require('express');
 const router = express.Router();
-const { registerUser, loginUser, getUsers } = require('../controllers/authController');
-const { protect, admin } = require('../middlewares/authMiddleware');
+const authController = require('../controllers/authController');
+// Agar aapne protect aur admin middleware use karne hain to line niche rakhein
+// const { protect, admin } = require('../middlewares/authMiddleware');
 
 // @route   POST /api/auth/register
-// @desc    Register new user
-router.post('/register', registerUser);
+router.post('/register', authController.register);
 
 // @route   POST /api/auth/login
-// @desc    Login user
-router.post('/login', loginUser);
+router.post('/login', authController.login);
 
-// @route   GET /api/auth
-// @desc    Get all users (admin only)
-router.get('/', protect, admin, getUsers);
+// @route   POST /api/auth/recover
+router.post('/recover', authController.recoverPassword);
+
+// @route   GET /api/auth (Admin Only - Users list dekhne ke liye)
+// router.get('/', protect, admin, authController.getUsers); 
 
 module.exports = router;

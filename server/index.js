@@ -4,135 +4,74 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const app = express();
 
-// Route files
-const authRoutes = require('./src/routes/authRoutes');
-const patientRoutes = require('./src/routes/patientRoutes');
-
-// ========== MIDDLEWARE ==========
-app.use(
-  cors({
-    origin: process.env.CLIENT_ORIGIN || 'http://localhost:5173',
+// ========== 1. MIDDLEWARE ==========
+app.use(cors({
+    origin: ['http://localhost:5173', 'http://localhost:5174'], 
     credentials: true,
-  })
-);
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ========== DATABASE CONNECTION ==========
-const connectDB = async () => {
-  try {
-    const mongoURI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/hospital_management';
-    
-    // MongoDB connection options
-    const options = {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    };
+// ========== 2. DATABASE CONNECTION (Local MongoDB) ==========
+// Localhost par database connection
+const mongoURI = 'mongodb://127.0.0.1:27017/hospital_management';
 
-    await mongoose.connect(mongoURI, options);
-    console.log('✅ MongoDB Connected Successfully');
-    
-    // Connection event listeners
-    mongoose.connection.on('error', (err) => {
-      console.error('❌ MongoDB Connection Error:', err.message);
-    });
-
-    mongoose.connection.on('disconnected', () => {
-      console.log('⚠️ MongoDB Disconnected');
-    });
-
-    mongoose.connection.on('reconnected', () => {
-      console.log('✅ MongoDB Reconnected');
-    });
-  } catch (err) {
+mongoose.connect(mongoURI)
+  .then(() => console.log('✅ MongoDB Connected Locally: hospital_management'))
+  .catch(err => {
     console.error('❌ MongoDB Connection Error:', err.message);
-    console.error('💡 Make sure MongoDB is running and MONGO_URI is correct in .env file');
-    // Don't exit in development, let server start anyway
-    if (process.env.NODE_ENV === 'production') {
-      process.exit(1);
-    }
-  }
-};
-
-connectDB();
-
-// ========== BASIC ROUTES ==========
-app.get('/', (req, res) => {
-  res.json({
-    success: true,
-    message: '🏥 Hospital Management System API',
-    version: '1.0.0',
-    endpoints: {
-      health: '/api/health',
-      auth: '/api/auth',
-      patients: '/api/patients',
-    },
-    database:
-      mongoose.connection.readyState === 1
-        ? 'Connected'
-        : 'Disconnected',
+    console.log('💡 Tip: Make sure MongoDB Compass / Service is running on your PC.');
   });
+
+// ========== 3. API ROUTES ==========
+
+// Auth Routes (Login, Register, Recovery)
+app.use('/api/auth', require('./src/routes/authRoutes'));
+
+// Dashboard Stats Route (Analytics & Charts)
+app.use('/api/dashboard', require('./src/routes/dashboardRoutes'));
+
+// White-Label Settings Route (Hospital Rename Logic 🏥)
+app.use('/api/settings', require('./src/routes/settingsRoutes'));
+
+// Patients & Doctors Management
+app.use('/api/patients', require('./src/routes/patientRoutes'));
+app.use('/api/doctors', require('./src/routes/doctorRoutes'));
+
+// Pharmacy & Inventory
+app.use('/api/pharmacy', require('./src/routes/pharmacyRoutes'));
+app.use('/api/medicines', require('./src/routes/medicineRoutes'));
+
+// Labs & Billing
+app.use('/api/labs', require('./src/routes/labRoutes'));
+app.use('/api/billing', require('./src/routes/billingRoutes'));
+
+// ========== 4. BASIC & HEALTH ROUTES ==========
+app.get('/', (req, res) => {
+  res.json({ success: true, message: '🏥 Hospital Management System API is Live' });
 });
 
 app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    database:
-      mongoose.connection.readyState === 1
-        ? 'connected'
-        : 'disconnected',
+  res.json({ 
+    status: 'healthy', 
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected' 
   });
 });
 
-// ========== API ROUTES ==========
-app.use('/api/auth', authRoutes);
-app.use('/api/patients', patientRoutes);
-
-// ========== ERROR HANDLING ==========
-app.use((req, res, next) => {
-  res.status(404).json({
-    success: false,
-    message: `Route ${req.originalUrl} not found`,
-  });
+// ========== 5. ERROR HANDLING ==========
+// 404 Route Not Found
+app.use((req, res) => {
+  res.status(404).json({ success: false, message: 'Route not found' });
 });
 
+// Global Error Handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({
-    success: false,
-    message: 'Internal server error',
-    error:
-      process.env.NODE_ENV === 'development'
-        ? err.message
-        : undefined,
-  });
+  res.status(500).json({ success: false, message: 'Internal server error' });
 });
 
-// ========== START SERVER ==========
+// ========== 6. START SERVER ==========
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log('\n' + '='.repeat(60));
-  console.log(`🚀 Hospital Management System Server Started`);
-  console.log(`📡 Port: ${PORT}`);
-  console.log(`🌐 URL: http://localhost:${PORT}`);
-  console.log(
-    `⚡ Environment: ${process.env.NODE_ENV || 'development'}`
-  );
-  console.log(
-    `🗄️  Database: ${
-      mongoose.connection.readyState === 1
-        ? '✅ Connected'
-        : '❌ Disconnected'
-    }`
-  );
-  console.log('='.repeat(60) + '\n');
-  console.log('📋 Available Endpoints:');
-  console.log(`   👉 http://localhost:${PORT}/ (API Info)`);
-  console.log(`   👉 http://localhost:${PORT}/api/health (Health Check)`);
-  console.log(`   👉 http://localhost:${PORT}/api/auth/register (Register)`);
-  console.log(`   👉 http://localhost:${PORT}/api/auth/login (Login)`);
-  console.log(`   👉 http://localhost:${PORT}/api/patients (Patients)`);
-  console.log('\n');
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
 });

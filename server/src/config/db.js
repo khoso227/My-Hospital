@@ -1,14 +1,8 @@
-const mongoose = require('mongoose');
-require('dotenv').config();
+require('dotenv').config(); // Sabse pehle ye line honi chahiye
+const express = require('express');
+const connectDB = require('./src/config/db'); // Jo code aapne abhi dikhaya
 
-const connectDB = async () => {
-    try {
-        await mongoose.connect(process.env.MONGO_URI);
-        console.log("MongoDB Connected...");
-    } catch (err) {
-        console.error(err.message);
-        process.exit(1);
-    }
-};
+const app = express();
 
-module.exports = connectDB;
+// Database connect karen
+connectDB(); 
