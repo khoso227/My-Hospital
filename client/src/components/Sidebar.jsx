@@ -96,11 +96,24 @@ const Sidebar = () => {
           </div>
         </div>
 
-        {/* --- MEDICAL SERVICES --- */}
+        {/* --- MEDICAL & STAFF SERVICES --- */}
         <div className="space-y-1">
           <p className="px-6 text-[9px] uppercase font-black text-blue-500 tracking-[4px] mb-3">
             Services
           </p>
+
+          {/* NAYA STAFF MANAGEMENT LINK ✅ */}
+          <NavLink
+            to="/dashboard/staff"
+            className={({ isActive }) =>
+              `flex items-center px-6 py-4 rounded-2xl transition-all ${
+                isActive ? 'bg-blue-600 text-white shadow-lg' : 'text-blue-200 hover:bg-blue-800'
+              }`
+            }
+          >
+            <Users className="w-5 h-5 mr-4" />
+            <span className="font-bold text-xs uppercase tracking-wider">{t('staff') || 'Staff Management'}</span>
+          </NavLink>
 
           <NavLink
             to="/dashboard/doctors"

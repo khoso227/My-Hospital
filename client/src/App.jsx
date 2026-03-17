@@ -6,12 +6,15 @@ import Login from './components/Login';
 
 // Layout and Common Components
 import Sidebar from './components/Sidebar';
-import DashboardLayout from './components/Dashboard'; 
+import DashboardLayout from './components/Dashboard'; // Isme Outlet hai
 import Patients from './components/Patients'; 
 import AddPatient from './components/AddPatient';
 import Appointments from './components/Appointments';
 
-// Dashboard Sub-Tabs (Real Functional Components)
+// Naya Staff Component Import
+import Staff from './pages/Staff/Staff'; 
+
+// Dashboard Sub-Tabs (Functional Components)
 import Overview from './components/dashboard/Overview';
 import DoctorsTab from './components/dashboard/DoctorsTab';
 import PatientsTab from './components/dashboard/PatientsTab';
@@ -22,7 +25,7 @@ import SettingsTab from './components/dashboard/SettingsTab';
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // 1. Check login status on page load
+  // 1. Login status check karein
   useEffect(() => {
     const auth = localStorage.getItem('isAdmin');
     if (auth === 'true') {
@@ -35,16 +38,15 @@ function App() {
     if (window.confirm("Are you sure you want to Logout?")) {
       localStorage.removeItem('isAdmin');
       setIsAuthenticated(false);
-      window.location.href = '/'; // Redirect to login screen
+      window.location.href = '/'; 
     }
   };
 
-  // --- Agar Login nahi hai to sirf Login Page dikhao ---
+  // --- Agar Login nahi hai to Login Page dikhao ---
   if (!isAuthenticated) {
     return <Login setAuth={setIsAuthenticated} />;
   }
 
-  // --- Agar Login hai to poora Hospital System dikhao ---
   return (
     <div className="flex h-screen bg-gray-100 overflow-hidden font-sans">
       {/* Sidebar hamesha nazar aayega jab login hoga */}
@@ -56,9 +58,11 @@ function App() {
           {/* 1. Root Redirect */}
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-          {/* 2. Dashboard Parent Route (With Nested Functional Tabs) */}
+          {/* 2. Dashboard Parent Route (Using DashboardLayout for Tabs) */}
           <Route path="/dashboard" element={<DashboardLayout />}>
+            {/* Saare Nested Routes jo Dashboard Tabs mein dikhenge */}
             <Route index element={<Overview />} />
+            <Route path="staff" element={<Staff />} /> 
             <Route path="doctors" element={<DoctorsTab />} />
             <Route path="patients" element={<PatientsTab />} />
             <Route path="labs" element={<LabsTab />} />
@@ -66,7 +70,7 @@ function App() {
             <Route path="settings" element={<SettingsTab />} /> 
           </Route>
 
-          {/* 3. Top-Level Sidebar Pages */}
+          {/* 3. Top-Level Sidebar Pages (Jo dashboard ke tabs ke bahar hain) */}
           <Route path="/patients" element={<Patients />} />
           <Route path="/add-patient" element={<AddPatient />} />
           <Route path="/appointments" element={<Appointments />} />

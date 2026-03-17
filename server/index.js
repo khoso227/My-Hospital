@@ -2,6 +2,9 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const http = require('http'); // Required for Socket.io
+const { Server } = require('socket.io'); // Socket.io Integration
+
 const app = express();
 
 // ========== 1. MIDDLEWARE ==========
@@ -12,41 +15,63 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ========== 2. DATABASE CONNECTION (Local MongoDB) ==========
-// Localhost par database connection
-const mongoURI = 'mongodb://127.0.0.1:27017/hospital_management';
+// ========== 2. DATABASE CONNECTION ==========
+const mongoURI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/hospital_management';
 
 mongoose.connect(mongoURI)
-  .then(() => console.log('✅ MongoDB Connected Locally: hospital_management'))
+  .then(() => console.log('✅ MongoDB Connected Successfully'))
   .catch(err => {
     console.error('❌ MongoDB Connection Error:', err.message);
-    console.log('💡 Tip: Make sure MongoDB Compass / Service is running on your PC.');
+    process.exit(1); 
   });
 
-// ========== 3. API ROUTES ==========
+// ========== 3. SOCKET.IO SETUP ==========
+const server = http.createServer(app); // Create HTTP server using Express app
+const io = new Server(server, {
+  cors: {
+    origin: "*", // Testing ke liye all allowed, production mein frontend URL dein
+    methods: ["GET", "POST"]
+  }
+});
 
-// Auth Routes (Login, Register, Recovery)
+// Real-time Event Handling
+io.on('connection', (socket) => {
+  console.log('⚡ User Connected to Socket:', socket.id);
+
+  // Jab reception se naya patient register ho
+  socket.on('new_patient', (data) => {
+    console.log('📢 New Patient Notification:', data);
+    io.emit('notify_doctor', data); // Saare connected doctors/nurses ko alert bhej do
+  });
+
+  socket.on('disconnect', () => {
+    console.log('❌ User Disconnected from Socket');
+  });
+});
+
+// ========== 4. API ROUTES ==========
+
+// Auth & Roles
 app.use('/api/auth', require('./src/routes/authRoutes'));
 
-// Dashboard Stats Route (Analytics & Charts)
+// Stats & Settings
 app.use('/api/dashboard', require('./src/routes/dashboardRoutes'));
-
-// White-Label Settings Route (Hospital Rename Logic 🏥)
 app.use('/api/settings', require('./src/routes/settingsRoutes'));
 
-// Patients & Doctors Management
+// Management (Staff, Patients, Doctors)
+app.use('/api/staff', require('./src/routes/staffRoutes'));
 app.use('/api/patients', require('./src/routes/patientRoutes'));
 app.use('/api/doctors', require('./src/routes/doctorRoutes'));
 
-// Pharmacy & Inventory
+// Medical & Inventory
 app.use('/api/pharmacy', require('./src/routes/pharmacyRoutes'));
 app.use('/api/medicines', require('./src/routes/medicineRoutes'));
 
-// Labs & Billing
+// Diagnostics
 app.use('/api/labs', require('./src/routes/labRoutes'));
 app.use('/api/billing', require('./src/routes/billingRoutes'));
 
-// ========== 4. BASIC & HEALTH ROUTES ==========
+// ========== 5. BASIC & HEALTH ROUTES ==========
 app.get('/', (req, res) => {
   res.json({ success: true, message: '🏥 Hospital Management System API is Live' });
 });
@@ -54,24 +79,24 @@ app.get('/', (req, res) => {
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'healthy', 
-    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected' 
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    socket: "active"
   });
 });
 
-// ========== 5. ERROR HANDLING ==========
-// 404 Route Not Found
+// ========== 6. ERROR HANDLING ==========
 app.use((req, res) => {
   res.status(404).json({ success: false, message: 'Route not found' });
 });
 
-// Global Error Handler
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ success: false, message: 'Internal server error' });
-});
+const errorHandler = require('./src/middlewares/errorMiddleware');
+app.use(errorHandler);
 
-// ========== 6. START SERVER ==========
+// ========== 7. START SERVER (Using server.listen for Socket support) ==========
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
+  console.log('-------------------------------------------');
   console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`📡 Real-time Notifications: Active`);
+  console.log('-------------------------------------------');
 });

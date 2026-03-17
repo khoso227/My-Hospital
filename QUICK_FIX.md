@@ -1,11 +1,13 @@
+
 # 🚨 QUICK FIX - White Screen Issue
 
-## Problem:
+## Problem
+
 - White screen aa raha hai
 - `App.jsx` me 500 error
 - Packages install nahi ho rahi
 
-## Solution - Ye EXACT steps follow karo:
+## Solution - Ye EXACT steps follow karo
 
 ### Method 1: Batch File (Easiest)
 
@@ -26,6 +28,7 @@
    - Right-click → "Run as Administrator"
 
 2. **Ye commands run karo:**
+
    ```powershell
    cd E:\hospital_management\client
    npm install
@@ -34,12 +37,11 @@
 3. **Wait karo 2-3 minutes** - packages install hote dikhengi
 
 4. **Verify karo:**
+
    ```powershell
    Test-Path node_modules\react
    ```
-   - Agar `True` aaye, to success!
 
-5. **Dev server start karo:**
    ```powershell
    npm run dev
    ```
@@ -65,17 +67,18 @@ npm install --legacy-peer-deps
 
 ---
 
-## After Installation:
+## After Installation
 
 1. **Verify packages:**
+
    ```powershell
    Test-Path node_modules\axios
    Test-Path node_modules\react-router-dom
    Test-Path node_modules\react-toastify
    ```
-   - Sab me `True` aana chahiye
 
 2. **Start dev server:**
+
    ```powershell
    npm run dev
    ```
