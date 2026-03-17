@@ -7,7 +7,7 @@ const PharmacyDashboard = () => {
   const [lowStock, setLowStock] = useState([]);
 
   useEffect(() => {
-    axios.get('http://localhost:5000/api/pharmacy/inventory')
+    axios.get('https://my-hospital-odec.vercel.app/api/pharmacy/inventory')
       .then(res => {
         setInventory(res.data.inventory);
         setLowStock(res.data.lowStock);

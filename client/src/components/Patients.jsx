@@ -11,7 +11,7 @@ const Patients = () => {
     const fetchData = async () => {
         try {
             setLoading(true);
-            const res = await axios.get('http://localhost:5000/api/patients');
+            const res = await axios.get('https://my-hospital-odec.vercel.app/api/patients');
             if (res.data.success) {
                 const data = res.data.data;
                 setPatients(data);

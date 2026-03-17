@@ -6,7 +6,7 @@ const Billing = () => {
   const [billings, setBillings] = useState([]);
 
   useEffect(() => {
-    axios.get('http://localhost:5000/api/billing')
+    axios.get('https://my-hospital-odec.vercel.app/api/billing')
       .then(res => setBillings(res.data.data))
       .catch(err => console.error(err));
   }, []);

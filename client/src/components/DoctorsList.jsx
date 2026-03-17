@@ -6,7 +6,7 @@ const DoctorsList = () => {
   const [doctors, setDoctors] = useState([]);
 
   useEffect(() => {
-    axios.get('http://localhost:5000/api/doctors')
+    axios.get('https://my-hospital-odec.vercel.app/api/doctors')
       .then(res => setDoctors(res.data.data))
       .catch(err => console.error(err));
   }, []);

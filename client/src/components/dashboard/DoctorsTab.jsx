@@ -12,7 +12,7 @@ const DoctorsTab = () => {
 
     const fetchDoctors = async () => {
         try {
-            const res = await axios.get('http://localhost:5000/api/doctors');
+            const res = await axios.get('https://my-hospital-odec.vercel.app/api/doctors');
             if (res.data.success) setDoctors(res.data.data);
         } catch (err) { console.log(err); }
     };
@@ -23,9 +23,9 @@ const DoctorsTab = () => {
         e.preventDefault();
         try {
             if (editId) {
-                await axios.put(`http://localhost:5000/api/doctors/${editId}`, formData);
+                await axios.put(`https://my-hospital-odec.vercel.app/api/doctors/${editId}`, formData);
             } else {
-                await axios.post('http://localhost:5000/api/doctors/add', formData);
+                await axios.post('https://my-hospital-odec.vercel.app/api/doctors/add', formData);
             }
             setIsModalOpen(false);
             setEditId(null);

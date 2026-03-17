@@ -97,7 +97,7 @@ const PharmacyTab = () => {
     // --- 2. DATA FETCHING ---
     const fetchMedicines = async () => {
         try {
-            const res = await axios.get('http://localhost:5000/api/medicines');
+            const res = await axios.get('https://my-hospital-odec.vercel.app/api/medicines');
             if (res.data.success) setMedicines(res.data.data);
         } catch (err) { 
             console.log("Error: Check if route is added in index.js"); 
@@ -130,7 +130,7 @@ const PharmacyTab = () => {
                 change: changeToReturn, 
                 extraDetails: extraFields 
             };
-            const res = await axios.post('http://localhost:5000/api/medicines/add', finalData);
+            const res = await axios.post('https://my-hospital-odec.vercel.app/api/medicines/add', finalData);
             if (res.data.success) {
                 // Auto-Print Receipt after saving
                 printReceipt({ ...finalData, _id: res.data.data._id });

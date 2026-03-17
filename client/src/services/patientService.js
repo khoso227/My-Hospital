@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/patients';
+const API_URL = 'https://my-hospital-odec.vercel.app/api/patients';
 
 // Token hasil karne ka function (Local Storage se)
 const getAuthHeaders = () => {

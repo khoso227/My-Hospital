@@ -19,7 +19,7 @@ const Login = ({ setAuth }) => {
 
         try {
             const url = view === 'login' ? 'login' : 'register';
-            const res = await axios.post(`http://localhost:5000/api/auth/${url}`, formData);
+            const res = await axios.post(`https://my-hospital-odec.vercel.app/api/auth/${url}`, formData);
 
             if (res.data.success) {
                 if (view === 'login') {

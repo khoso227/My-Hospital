@@ -14,7 +14,7 @@ const PatientsTab = () => {
 
     const fetchPatients = async () => {
         try {
-            const res = await axios.get('http://localhost:5000/api/patients');
+            const res = await axios.get('https://my-hospital-odec.vercel.app/api/patients');
             if (res.data.success) setPatients(res.data.data);
         } catch (err) { console.log("Fetch Error:", err); }
     };
@@ -25,7 +25,7 @@ const PatientsTab = () => {
 
     const handleStatusUpdate = async (id, status) => {
         try {
-            await axios.put(`http://localhost:5000/api/patients/status/${id}`, { status });
+            await axios.put(`https://my-hospital-odec.vercel.app/api/patients/status/${id}`, { status });
             fetchPatients();
         } catch (err) { alert("Status Update Failed"); }
     };
@@ -97,7 +97,7 @@ const PatientsTab = () => {
                         </div>
                         <form onSubmit={async (e) => {
                             e.preventDefault();
-                            await axios.post('http://localhost:5000/api/patients/add', formData);
+                            await axios.post('https://my-hospital-odec.vercel.app/api/patients/add', formData);
                             setIsModalOpen(false); 
                             fetchPatients();
                         }} className="space-y-4">

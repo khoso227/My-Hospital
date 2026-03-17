@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: 'http://localhost:5000/api', // Backend URL
+  baseURL: 'https://my-hospital-odec.vercel.app/api', // Backend URL
 });
 
 // Security: Token automatically har request ke saath jayega

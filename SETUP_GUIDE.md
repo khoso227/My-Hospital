@@ -59,7 +59,7 @@ npm install
 MONGO_URI=mongodb+srv://khososarang816_db_user:YOUR_PASSWORD@cluster0.fkglegi.mongodb.net/hospital_management?retryWrites=true&w=majority
 JWT_SECRET=super_secret_jwt_key_12345
 PORT=5000
-CLIENT_ORIGIN=http://localhost:5173
+CLIENT_ORIGIN=https://my-hospital-odec.vercel.app
 NODE_ENV=development
 ```
 
@@ -76,10 +76,10 @@ npm run dev
 ✅ MongoDB Connected Successfully
 🚀 Hospital Management System Server Started
 📡 Port: 5000
-🌐 URL: http://localhost:5000
+🌐 URL: https://my-hospital-odec.vercel.app
 ```
 
-**Test:** Open browser → `http://localhost:5000/api/health`
+**Test:** Open browser → `https://my-hospital-odec.vercel.app/api/health`
 - Should show: `{"status":"healthy","database":"connected"}`
 
 ---
@@ -101,7 +101,7 @@ npm install
 **Create `client/.env` file:**
 
 ```env
-VITE_API_BASE_URL=http://localhost:5000
+VITE_API_BASE_URL=https://my-hospital-odec.vercel.app
 ```
 
 **Start Frontend:**
@@ -137,7 +137,7 @@ VITE v4.x.x  ready in xxx ms
 
 **Method 2: Using Postman/Thunder Client**
 
-- **URL:** `POST http://localhost:5000/api/auth/register`
+- **URL:** `POST https://my-hospital-odec.vercel.app/api/auth/register`
 - **Headers:** `Content-Type: application/json`
 - **Body (JSON):**
 ```json
@@ -185,8 +185,8 @@ VITE v4.x.x  ready in xxx ms
 **Problem:** `Network Error` or blank page
 
 **Fix:**
-1. Make sure backend is running (`http://localhost:5000`)
-2. Check `client/.env` has: `VITE_API_BASE_URL=http://localhost:5000`
+1. Make sure backend is running (`https://my-hospital-odec.vercel.app`)
+2. Check `client/.env` has: `VITE_API_BASE_URL=https://my-hospital-odec.vercel.app`
 3. Restart frontend after changing `.env`
 4. Check browser console (F12) for errors
 

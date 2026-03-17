@@ -36,7 +36,7 @@ const PharmacyReports = () => {
       if (startDate) params.startDate = startDate;
       if (endDate) params.endDate = endDate;
 
-      const res = await axios.get('http://localhost:5000/api/pharmacy/reports', { params });
+      const res = await axios.get('https://my-hospital-odec.vercel.app/api/pharmacy/reports', { params });
 
       if (!res.data || Object.keys(res.data).length === 0) {
         throw new Error('No data returned from server');

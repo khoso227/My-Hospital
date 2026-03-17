@@ -11,7 +11,7 @@ export default defineConfig({
     proxy: {
       // Sab /api/... wale requests ko backend (port 5000) pe bhej dega
       '/api': {
-        target: 'http://localhost:5000',   // ← aapka backend port
+        target: 'https://my-hospital-odec.vercel.app',   // ← aapka backend port
         changeOrigin: true,                // host header change karega
         secure: false,                     // local dev ke liye
         rewrite: (path) => path.replace(/^\/api/, ''), // optional agar backend /api pe expect nahi karta

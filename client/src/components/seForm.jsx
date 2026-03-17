@@ -12,7 +12,7 @@ const DispenseForm = ({ medicines, patients }) => { // Assume props se lists aay
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post('http://localhost:5000/api/pharmacy/dispense', formData);
+      const res = await axios.post('https://my-hospital-odec.vercel.app/api/pharmacy/dispense', formData);
       alert('Dispensed successfully! Bill generated.');
     } catch (err) {
       alert(err.response.data.message);

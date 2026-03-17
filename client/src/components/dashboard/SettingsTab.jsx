@@ -7,7 +7,7 @@ const SettingsTab = () => {
     const [address, setAddress] = useState('');
 
     useEffect(() => {
-        axios.get('http://localhost:5000/api/settings').then(res => {
+        axios.get('https://my-hospital-odec.vercel.app/api/settings').then(res => {
             if(res.data.success) {
                 setHospitalName(res.data.data.hospitalName);
                 setAddress(res.data.data.address);
@@ -18,7 +18,7 @@ const SettingsTab = () => {
     }, []);
 
     const handleSave = async () => {
-        const res = await axios.put('http://localhost:5000/api/settings/update', { hospitalName, address });
+        const res = await axios.put('https://my-hospital-odec.vercel.app/api/settings/update', { hospitalName, address });
         if(res.data.success) {
             localStorage.setItem('hospitalName', hospitalName);
             alert("Hospital Brand Updated! Refreshing...");

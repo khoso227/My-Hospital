@@ -82,12 +82,12 @@ You should see:
 ✅ MongoDB Connected Successfully
 🚀 Hospital Management System Server Started
 📡 Port: 5000
-🌐 URL: http://localhost:5000
+🌐 URL: https://my-hospital-odec.vercel.app
 ```
 
 **Test Backend:**
 
-- Open browser: `http://localhost:5000/api/health`
+- Open browser: `https://my-hospital-odec.vercel.app/api/health`
 - Should show: `{"status":"healthy","database":"connected"}`
 
 ### Step 3: Frontend Setup
@@ -109,7 +109,7 @@ npm install
    - Add:
 
 ```env
-VITE_API_BASE_URL=http://localhost:5000
+VITE_API_BASE_URL=https://my-hospital-odec.vercel.app
 ```
 
 1. **Start frontend:**
@@ -138,7 +138,7 @@ VITE v4.x.x  ready in xxx ms
 
 ### Option 2: Using Postman/Thunder Client
 
-- **POST** <http://localhost:5000/api/auth/register>
+- **POST** <https://my-hospital-odec.vercel.app/api/auth/register>
 - Body (JSON):
 
 ```json
@@ -213,7 +213,7 @@ hospital_management/
 **Solutions:**
 
 1. Make sure backend is running on port 5000
-2. Check `client/.env` has: `VITE_API_BASE_URL=http://localhost:5000`
+2. Check `client/.env` has: `VITE_API_BASE_URL=https://my-hospital-odec.vercel.app`
 3. Restart frontend after changing `.env`
 
 ## 🚀 Deployment (Make it Live)

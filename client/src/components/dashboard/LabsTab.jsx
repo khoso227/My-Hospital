@@ -10,8 +10,8 @@ const LabsTab = () => {
 
     const fetchData = async () => {
         try {
-            const resL = await axios.get('http://localhost:5000/api/labs');
-            const resP = await axios.get('http://localhost:5000/api/patients');
+            const resL = await axios.get('https://my-hospital-odec.vercel.app/api/labs');
+            const resP = await axios.get('https://my-hospital-odec.vercel.app/api/patients');
             if (resL.data.success) setLabs(resL.data.data);
             if (resP.data.success) setPatients(resP.data.data);
         } catch (err) { console.log(err); }
@@ -22,7 +22,7 @@ const LabsTab = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const res = await axios.post('http://localhost:5000/api/labs/add', formData);
+            const res = await axios.post('https://my-hospital-odec.vercel.app/api/labs/add', formData);
             if (res.data.success) {
                 setIsModalOpen(false);
                 setFormData({ patient: '', testName: '', fee: '', status: 'Pending' });
