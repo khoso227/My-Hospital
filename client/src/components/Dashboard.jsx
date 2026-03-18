@@ -213,13 +213,15 @@ const DashboardLayout = ({ onToggleSidebar }) => {
   };
 
   // Derived counts
-  const admittedCount = patients.filter((p) => {
+  const admittedFromBeds = bedsLive.filter(b => b.status === 'Occupied').length;
+  const admittedFromPatients = patients.filter((p) => {
     const typeNorm = (p.type || '').trim().toLowerCase();
     const statusNorm = (p.status || '').trim();
     const isAdmit = typeNorm.includes('admit') || typeNorm.includes('ward');
     const isClosed = ['Discharged', 'Referred', 'Death', 'OPD Return'].includes(statusNorm);
     return isAdmit && !isClosed;
   }).length;
+  const admittedCount = admittedFromBeds || admittedFromPatients;
   const bedsAvailable = totalBeds - admittedCount;
   const beds = bedsLive.length
     ? bedsLive.map(b => ({ id: b.bedNumber?.replace('B-','') || b.bedNumber || '?', status: b.status }))
