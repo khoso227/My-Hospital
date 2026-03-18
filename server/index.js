@@ -8,9 +8,14 @@ const { Server } = require('socket.io');
 const app = express();
 
 // ========== 1. MIDDLEWARE ==========
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  process.env.CLIENT_ORIGIN || 'https://my-hospital-sooty.vercel.app'
+];
+
 app.use(cors({
-    // Yahan localhost ke saath apna Vercel frontend link bhi dalien
-    origin: ['http://localhost:5173', 'http://localhost:5174', 'https://my-hospital-sooty.vercel.app'], 
+    origin: allowedOrigins,
     credentials: true,
 }));
 app.use(express.json());

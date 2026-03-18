@@ -1,6 +1,7 @@
 const express = require('express');
 const Bed = require('../models/Bed');
 const Patient = require('../models/Patient');
+const Log = require('../models/Log');
 
 const router = express.Router();
 
@@ -22,11 +23,11 @@ router.get('/', async (req, res) => {
   try {
     await ensureBeds();
     const { ward } = req.query;
-    const q = ward ? { ward } : {};
-    const beds = await Bed.find(q).sort({ bedNumber: 1 }).populate('patient', 'name trackingId status');
-    res.json({ success: true, data: beds });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+  const q = ward ? { ward } : {};
+  const beds = await Bed.find(q).sort({ bedNumber: 1 }).populate('patient', 'name trackingId status');
+  res.json({ success: true, data: beds });
+} catch (err) {
+  res.status(500).json({ success: false, message: err.message });
   }
 });
 
@@ -48,6 +49,13 @@ router.put('/:id/status', async (req, res) => {
     if (!patientId && status === 'Available') {
       await Patient.updateMany({ bedNumber: bed.bedNumber }, { $unset: { bedNumber: "", ward: "" } });
     }
+
+    await Log.create({
+      action: 'bed-status',
+      entity: 'bed',
+      entityId: bed._id?.toString(),
+      detail: { status: bed.status, patient: patientId, note }
+    });
 
     res.json({ success: true, data: bed });
   } catch (err) {

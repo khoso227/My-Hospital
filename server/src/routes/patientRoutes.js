@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Patient = require('../models/Patient');
+const Log = require('../models/Log');
 
 // GET with search/filter/pagination
 router.get('/', async (req, res) => {
@@ -48,6 +49,7 @@ router.post('/add', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Tracking ID already exists' });
     }
     const patient = await Patient.create({ ...req.body, trackingId });
+    await Log.create({ action: 'create', entity: 'patient', entityId: patient._id.toString(), detail: { trackingId, name: patient.name } });
     res.status(201).json({ success: true, data: patient });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -84,6 +86,7 @@ router.put('/status/:id', async (req, res) => {
       { new: true }
     ).populate('assignedDoctor');
     if (!updatedPatient) return res.status(404).json({ success: false, message: 'Patient not found' });
+    await Log.create({ action: 'status', entity: 'patient', entityId: updatedPatient._id.toString(), detail: { status } });
     res.json({ success: true, data: updatedPatient });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -102,6 +105,7 @@ router.delete('/:id', async (req, res) => {
     }
 
     await patient.deleteOne();
+    await Log.create({ action: 'delete', entity: 'patient', entityId: patient._id.toString(), detail: { name: patient.name } });
     res.json({ success: true, message: 'Patient removed' });
   } catch (error) {
     console.error(error);
