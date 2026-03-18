@@ -119,14 +119,27 @@ const DashboardLayout = ({ onToggleSidebar }) => {
 
   useEffect(() => { loadPatientCache(); fetchPatients(); }, []);
 
-  // Chart Data (Weekly Patient Flow)
+  // Chart Data (Weekly Patient Flow) based on available patient records
   const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const dayCounts = (() => {
+    const counts = Array(7).fill(0);
+    patients.forEach(p => {
+      const d = p.createdAt ? new Date(p.createdAt) : new Date();
+      const idx = d.getDay(); // 0=Sun ... 6=Sat
+      const mapped = idx === 0 ? 6 : idx - 1; // shift to Mon=0
+      counts[mapped] += 1;
+    });
+    // fallback to at least one bar if no data
+    if (patients.length === 0) return Array(7).fill(0);
+    return counts;
+  })();
+
   const chartData = {
     labels: daysOfWeek,
     datasets: [
       {
         label: 'Patients',
-        data: [45, 78, 120, 195, 168, 92, 55],
+        data: dayCounts,
         borderColor: '#3b82f6',
         backgroundColor: 'rgba(59, 130, 246, 0.2)',
         tension: 0.4,
@@ -182,6 +195,8 @@ const DashboardLayout = ({ onToggleSidebar }) => {
     id: i + 1,
     status: i < admittedCount ? 'Occupied' : 'Available',
   }));
+  const totalPatients = patients.length;
+  const activePatients = patients.filter(p => p.status === 'Active').length;
 
   // ──────────────────────────────────────────────────────────
   return (
@@ -373,10 +388,10 @@ const DashboardLayout = ({ onToggleSidebar }) => {
             {/* KPI Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
               {[
-                { title: 'Revenue Today', value: 'Rs. 25,000', color: 'blue' },
+                { title: 'Total Patients', value: totalPatients, color: 'blue' },
                 { title: 'Admitted Patients', value: admittedCount, color: 'red' },
                 { title: 'Beds Available', value: `${bedsAvailable}/${totalBeds}`, color: 'green' },
-                { title: 'Pending Labs', value: '49', color: 'purple' },
+                { title: 'Active Patients', value: activePatients, color: 'purple' },
               ].map((item, i) => (
                 <div key={i} className={`${isDark ? 'bg-slate-800 text-slate-100' : 'bg-white text-gray-800'} rounded-2xl shadow-lg p-6 border-t-4 border-${item.color}-600`}>
                   <p className={`text-xs font-bold uppercase tracking-wide ${isDark ? 'text-slate-300' : 'text-gray-500'}`}>{item.title}</p>
