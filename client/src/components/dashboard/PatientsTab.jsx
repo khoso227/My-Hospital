@@ -189,9 +189,17 @@ const PatientsTab = () => {
                             const trackingId = formData.trackingId?.trim() || `PT-${Date.now().toString().slice(-6)}`;
                             try {
                                 if (editingId) {
-                                    await axios.put(`https://my-hospital-odec.vercel.app/api/patients/${editingId}`, { ...formData, trackingId });
+                                    await axios.put(
+                                        `https://my-hospital-odec.vercel.app/api/patients/${editingId}`,
+                                        { ...formData, trackingId },
+                                        { timeout: 2500 }
+                                    );
                                 } else {
-                                    await axios.post('https://my-hospital-odec.vercel.app/api/patients/add', { ...formData, trackingId });
+                                    await axios.post(
+                                        'https://my-hospital-odec.vercel.app/api/patients/add',
+                                        { ...formData, trackingId },
+                                        { timeout: 2500 }
+                                    );
                                 }
                                 fetchPatients();
                             } catch (err) {
@@ -206,6 +214,7 @@ const PatientsTab = () => {
                                     setPatients(updated);
                                     persistLocal(updated);
                                 }
+                                alert(err?.response?.data?.message || "Backend offline, saved locally.");
                             }
                             setIsModalOpen(false); 
                             setEditingId(null);
