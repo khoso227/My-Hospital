@@ -1,22 +1,35 @@
 const express = require('express');
 const router = express.Router();
-// Security middlewares (protect, admin) hata diye gaye hain
 const Patient = require('../models/Patient');
-const User = require('../models/User');
 
-// @desc    Get all patients
-// @route   GET /api/patients
-// @access  Public
+// GET with search/filter/pagination
 router.get('/', async (req, res) => {
   try {
-    const patients = await Patient.find()
-      .populate('assignedDoctor') // Frontend doctor name dikhane ke liye zaroori hai
-      .sort({ createdAt: -1 });
-    
-    // Frontend ko data object ke andar chahiye
-    res.json({ success: true, data: patients });
+    const { search, status, type, from, to, page = 1, limit = 50 } = req.query;
+    const q = {};
+    if (status) q.status = status;
+    if (type) q.type = type;
+    if (from || to) {
+      q.createdAt = {};
+      if (from) q.createdAt.$gte = new Date(from);
+      if (to) q.createdAt.$lte = new Date(to);
+    }
+    if (search) {
+      const regex = new RegExp(search, 'i');
+      q.$or = [
+        { name: regex },
+        { cell: regex },
+        { disease: regex },
+        { trackingId: regex }
+      ];
+    }
+    const skip = (Number(page) - 1) * Number(limit);
+    const [data, total] = await Promise.all([
+      Patient.find(q).populate('assignedDoctor').sort({ createdAt: -1 }).skip(skip).limit(Number(limit)),
+      Patient.countDocuments(q)
+    ]);
+    res.json({ success: true, data, total, page: Number(page), limit: Number(limit) });
   } catch (error) {
-    console.error(error);
     res.status(500).json({ success: false, message: error.message });
   }
 });
@@ -26,10 +39,17 @@ router.get('/', async (req, res) => {
 // @access  Public
 router.post('/add', async (req, res) => {
   try {
-    const patient = await Patient.create(req.body);
+    let { trackingId } = req.body;
+    if (!trackingId) {
+      trackingId = `PT-${Date.now().toString().slice(-6)}`;
+    }
+    const exists = await Patient.findOne({ trackingId });
+    if (exists) {
+      return res.status(400).json({ success: false, message: 'Tracking ID already exists' });
+    }
+    const patient = await Patient.create({ ...req.body, trackingId });
     res.status(201).json({ success: true, data: patient });
   } catch (error) {
-    console.error(error);
     res.status(500).json({ success: false, message: error.message });
   }
 });
@@ -57,21 +77,15 @@ router.get('/:id', async (req, res) => {
 // @access  Public
 router.put('/status/:id', async (req, res) => {
   try {
-    const { status, certificateData } = req.body;
-    
+    const { status, certificateData, dischargeSummary } = req.body;
     const updatedPatient = await Patient.findByIdAndUpdate(
       req.params.id,
-      { status, certificateData },
+      { status, certificateData, dischargeSummary },
       { new: true }
     ).populate('assignedDoctor');
-
-    if (!updatedPatient) {
-      return res.status(404).json({ success: false, message: 'Patient not found' });
-    }
-
+    if (!updatedPatient) return res.status(404).json({ success: false, message: 'Patient not found' });
     res.json({ success: true, data: updatedPatient });
   } catch (error) {
-    console.error(error);
     res.status(500).json({ success: false, message: error.message });
   }
 });

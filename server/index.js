@@ -47,6 +47,7 @@ app.use('/api/dashboard', require('./src/routes/dashboardRoutes'));
 app.use('/api/settings', require('./src/routes/settingsRoutes'));
 app.use('/api/staff', require('./src/routes/staffRoutes'));
 app.use('/api/patients', require('./src/routes/patientRoutes'));
+app.use('/api/beds', require('./src/routes/bedRoutes'));
 app.use('/api/doctors', require('./src/routes/doctorRoutes'));
 app.use('/api/pharmacy', require('./src/routes/pharmacyRoutes'));
 app.use('/api/medicines', require('./src/routes/medicineRoutes'));

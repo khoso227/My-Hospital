@@ -6,12 +6,18 @@ const PatientSchema = new mongoose.Schema({
     disease: String,
     address: String,
     type: { type: String, enum: ['OPD', 'Admit'], default: 'OPD' },
+    admissionSource: { type: String, enum: ['OPD', 'ER', 'Referral', 'Other'], default: 'OPD' },
     admissionDays: { type: Number, default: 0 },
     status: { 
         type: String, 
         enum: ['Active', 'Discharged', 'Death', 'Referred'], 
         default: 'Active' 
     },
+    trackingId: { type: String, unique: true, sparse: true },
+    ward: { type: String, default: 'General' },
+    bedNumber: { type: String },
+    dischargeSummary: String,
+    previousAdmission: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient' },
     assignedDoctor: { type: mongoose.Schema.Types.ObjectId, ref: 'Doctor' },
     
     // Letters & Certificates Data
