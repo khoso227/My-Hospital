@@ -95,12 +95,22 @@ const PharmacyTab = () => {
     };
 
     // --- 2. DATA FETCHING ---
+    const cacheKey = 'pharmacy_offline';
+
+    const persistLocal = (list) => localStorage.setItem(cacheKey, JSON.stringify(list));
+
     const fetchMedicines = async () => {
         try {
             const res = await axios.get('https://my-hospital-odec.vercel.app/api/medicines');
-            if (res.data.success) setMedicines(res.data.data);
+            if (res.data.success) {
+                setMedicines(res.data.data);
+                persistLocal(res.data.data);
+                return;
+            }
         } catch (err) { 
-            console.log("Error: Check if route is added in index.js"); 
+            console.log("API error, using cached medicines if available:", err?.message); 
+            const cached = localStorage.getItem(cacheKey);
+            if (cached) setMedicines(JSON.parse(cached));
         }
     };
 
@@ -124,23 +134,34 @@ const PharmacyTab = () => {
     // --- 5. SUBMIT TO BACKEND ---
     const handleSubmit = async (e) => {
         e.preventDefault();
+        const finalData = { 
+            ...formData, 
+            change: changeToReturn, 
+            extraDetails: extraFields 
+        };
         try {
-            const finalData = { 
-                ...formData, 
-                change: changeToReturn, 
-                extraDetails: extraFields 
-            };
             const res = await axios.post('https://my-hospital-odec.vercel.app/api/medicines/add', finalData);
             if (res.data.success) {
-                // Auto-Print Receipt after saving
                 printReceipt({ ...finalData, _id: res.data.data._id });
-                
                 setIsModalOpen(false);
                 setFormData({ name: '', category: '', stock: 1, price: 0, discount: 0, received: 0 });
                 setExtraFields([]);
                 fetchMedicines();
+                return;
             }
-        } catch (err) { alert("Server Error! Check Backend Connectivity."); }
+        } catch (err) { 
+            console.log("Pharmacy add API failed, saving offline:", err?.message);
+            // offline fallback
+            const offlineRecord = { ...finalData, _id: Date.now().toString() };
+            const updated = [offlineRecord, ...medicines];
+            setMedicines(updated);
+            persistLocal(updated);
+            printReceipt(offlineRecord);
+        }
+
+        setIsModalOpen(false);
+        setFormData({ name: '', category: '', stock: 1, price: 0, discount: 0, received: 0 });
+        setExtraFields([]);
     };
 
     const hospitalName = localStorage.getItem('hospitalName') || 'HOSPITAL PRO';
@@ -193,7 +214,7 @@ const PharmacyTab = () => {
                                 <td className="p-6 text-center font-black text-red-500 font-mono">{med.discount}%</td>
                                 <td className="p-6 text-center font-black text-green-600 font-mono">Rs. {med.received}</td>
                                 <td className="p-6 text-center bg-blue-50/30">
-                                    <span className="font-black text-blue-700 text-lg font-mono">Rs. {med.change}</span>
+                                    <span className="font-black text-blue-700 text-lg font-mono">Rs. {med.change ?? 0}</span>
                                 </td>
                                 <td className="p-6 text-right">
                                     <button 

@@ -24,11 +24,11 @@ import {
   LayoutDashboard, Users, UserRound, Beaker, Pill, Settings,
   Stethoscope, HeartPulse, Plus, Printer, Save, X as CloseIcon,
   Cog as HiCog, Home as HiHome, ChartBar as HiChartBar,
-  Wifi   // Hospital Identity ke liye
+  Wifi, Menu  // Hospital Identity ke liye
 } from 'lucide-react';
 
 // ──────────────────────────────────────────────────────────
-const DashboardLayout = () => {
+const DashboardLayout = ({ onToggleSidebar }) => {
   const { i18n } = useTranslation();
   const location = useLocation();
 
@@ -143,10 +143,20 @@ const DashboardLayout = () => {
     <div className="flex flex-col h-screen overflow-hidden bg-gray-50/80 font-sans">
 
       {/* HEADER */}
-      <header className="bg-gradient-to-r from-blue-800 to-blue-900 text-white px-6 md:px-10 py-4 flex justify-between items-center shadow-lg shrink-0">
-        <div>
-          <h2 className="font-black text-2xl uppercase tracking-wider italic">{hospitalName}</h2>
-          <span className="text-xs font-bold text-blue-200 tracking-widest uppercase">SMART HOSPITAL SaaS</span>
+      <header className="bg-gradient-to-r from-blue-800 to-blue-900 text-white px-4 md:px-10 py-4 flex justify-between items-center shadow-lg shrink-0">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            className="md:hidden p-2 rounded-full bg-white/10 border border-white/20 hover:bg-white/20 active:scale-95 transition"
+            onClick={onToggleSidebar}
+            aria-label="Toggle sidebar"
+          >
+            <Menu size={22} />
+          </button>
+          <div>
+            <h2 className="font-black text-2xl uppercase tracking-wider italic">{hospitalName}</h2>
+            <span className="text-xs font-bold text-blue-200 tracking-widest uppercase">SMART HOSPITAL SaaS</span>
+          </div>
         </div>
         <div className="flex gap-2.5">
           {['en', 'ur', 'sd'].map(lng => (

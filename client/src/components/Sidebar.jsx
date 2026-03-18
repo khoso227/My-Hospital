@@ -14,13 +14,17 @@ import {
   Activity
 } from 'lucide-react';
 
-const Sidebar = () => {
+const Sidebar = ({ isMobileOpen = false, closeSidebar, onLogout }) => {
   const { t } = useTranslation();
 
   // DYNAMIC BRANDING: Priority to user-set name, fallback to translation or default
   const hospitalName = localStorage.getItem('hospitalName') || t('hospital_name') || 'HOSPITAL PRO';
 
   const handleLogout = () => {
+    if (onLogout) {
+      onLogout();
+      return;
+    }
     if (window.confirm("Are you sure you want to Logout?")) {
       localStorage.clear();
       window.location.reload();
@@ -28,7 +32,14 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="w-72 bg-blue-900 h-screen text-white flex flex-col shadow-2xl transition-all duration-300 shrink-0">
+    <div
+      className={`
+        fixed inset-y-0 left-0 z-40 w-72 bg-blue-900 h-screen text-white flex flex-col shadow-2xl
+        transform transition-transform duration-300 shrink-0
+        ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}
+        md:translate-x-0 md:relative
+      `}
+    >
       
       {/* 1. BRAND AREA (White-Label Enabled) */}
       <div className="p-8 border-b border-blue-800 text-center">
@@ -48,18 +59,19 @@ const Sidebar = () => {
           <NavLink
             to="/dashboard"
             end
-            className={({ isActive }) =>
-              `flex items-center px-6 py-4 rounded-2xl transition-all group ${
-                isActive
-                  ? 'bg-blue-600 text-white shadow-lg'
-                  : 'text-blue-300 hover:bg-blue-800 hover:text-white font-medium'
-              }`
-            }
-          >
-            <LayoutDashboard className="w-5 h-5 mr-4 group-hover:scale-110 transition" />
-            <span className="font-black uppercase text-[10px] tracking-widest">
-              {t('dashboard') || 'Dashboard'}
-            </span>
+              className={({ isActive }) =>
+                `flex items-center px-6 py-4 rounded-2xl transition-all group ${
+                  isActive
+                    ? 'bg-blue-600 text-white shadow-lg'
+                    : 'text-blue-300 hover:bg-blue-800 hover:text-white font-medium'
+                }`
+              }
+              onClick={closeSidebar}
+            >
+              <LayoutDashboard className="w-5 h-5 mr-4 group-hover:scale-110 transition" />
+              <span className="font-black uppercase text-[10px] tracking-widest">
+                {t('dashboard') || 'Dashboard'}
+              </span>
           </NavLink>
         </div>
 
@@ -77,6 +89,7 @@ const Sidebar = () => {
                   isActive ? 'bg-blue-600 text-white shadow-lg' : 'text-blue-200 hover:bg-blue-800'
                 }`
               }
+              onClick={closeSidebar}
             >
               <List className="w-5 h-5 mr-4" />
               <span className="font-bold text-xs uppercase tracking-wider">All Records</span>
@@ -89,6 +102,7 @@ const Sidebar = () => {
                   isActive ? 'bg-blue-600 text-white shadow-lg' : 'text-blue-200 hover:bg-blue-800'
                 }`
               }
+              onClick={closeSidebar}
             >
               <UserPlus className="w-5 h-5 mr-4" />
               <span className="font-bold text-xs uppercase tracking-wider">{t('add_new') || 'Add New'}</span>
@@ -110,6 +124,7 @@ const Sidebar = () => {
                 isActive ? 'bg-blue-600 text-white shadow-lg' : 'text-blue-200 hover:bg-blue-800'
               }`
             }
+            onClick={closeSidebar}
           >
             <Users className="w-5 h-5 mr-4" />
             <span className="font-bold text-xs uppercase tracking-wider">{t('staff') || 'Staff Management'}</span>
@@ -122,6 +137,7 @@ const Sidebar = () => {
                 isActive ? 'bg-blue-600 text-white shadow-lg' : 'text-blue-200 hover:bg-blue-800'
               }`
             }
+            onClick={closeSidebar}
           >
             <Stethoscope className="w-5 h-5 mr-4" />
             <span className="font-bold text-xs uppercase tracking-wider">{t('doctors') || 'Doctors'}</span>
@@ -134,6 +150,7 @@ const Sidebar = () => {
                 isActive ? 'bg-blue-600 text-white shadow-lg' : 'text-blue-200 hover:bg-blue-800'
               }`
             }
+            onClick={closeSidebar}
           >
             <Calendar className="w-5 h-5 mr-4" />
             <span className="font-bold text-xs uppercase tracking-wider">{t('appointments') || 'Appointments'}</span>
@@ -146,6 +163,7 @@ const Sidebar = () => {
                 isActive ? 'bg-blue-600 text-white shadow-lg' : 'text-blue-200 hover:bg-blue-800'
               }`
             }
+            onClick={closeSidebar}
           >
             <Activity className="w-5 h-5 mr-4" />
             <span className="font-bold text-xs uppercase tracking-wider">{t('labs') || 'Labs'}</span>
@@ -158,6 +176,7 @@ const Sidebar = () => {
                 isActive ? 'bg-blue-600 text-white shadow-lg' : 'text-blue-200 hover:bg-blue-800'
               }`
             }
+            onClick={closeSidebar}
           >
             <Pill className="w-5 h-5 mr-4" />
             <span className="font-bold text-xs uppercase tracking-wider">{t('pharmacy') || 'Pharmacy'}</span>

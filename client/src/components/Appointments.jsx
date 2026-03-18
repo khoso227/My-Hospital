@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
+import { MoreVertical, Edit2, Trash2, Plus } from 'lucide-react';
 
 const Appointments = () => {
-  const [selectedDoctor, setSelectedDoctor] = useState(null);
-  const [formData, setFormData] = useState({ name: '', mobile: '', address: '' });
-
-  const doctors = [
+  const initialDoctors = [
     { 
       id: 1, name: "Dr. Gm Khoso", specialist: "Neurologist", 
       fees: "1500", days: "Mon - Thu", time: "11:00 AM - 05:00 PM",
@@ -22,14 +20,67 @@ const Appointments = () => {
     }
   ];
 
+  const [doctors, setDoctors] = useState(initialDoctors);
+  const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const [formData, setFormData] = useState({ name: '', mobile: '', address: '' });
+  const [doctorForm, setDoctorForm] = useState({
+    name: '',
+    specialist: '',
+    fees: '',
+    days: '',
+    time: '',
+    image: '👨‍⚕️'
+  });
+  const [editingId, setEditingId] = useState(null);
+  const [menuOpenId, setMenuOpenId] = useState(null);
+
+  const resetDoctorForm = () => {
+    setDoctorForm({ name: '', specialist: '', fees: '', days: '', time: '', image: '👨‍⚕️' });
+    setEditingId(null);
+  };
+
   const handleBooking = (e) => {
     e.preventDefault();
-    if(!selectedDoctor) return alert("Pehle Doctor select karein!");
+    if (!selectedDoctor) return alert("Pehle Doctor select karein!");
     
     alert(`Appointment Booked Successfully!\nPatient: ${formData.name}\nDoctor: ${selectedDoctor.name}\nFees: Rs. ${selectedDoctor.fees}`);
-    // Yahan backend API call ayegi
     setFormData({ name: '', mobile: '', address: '' });
     setSelectedDoctor(null);
+  };
+
+  const handleDoctorSubmit = (e) => {
+    e.preventDefault();
+    if (!doctorForm.name || !doctorForm.specialist) return;
+
+    if (editingId) {
+      const updated = doctors.map(doc =>
+        doc.id === editingId ? { ...doc, ...doctorForm } : doc
+      );
+      setDoctors(updated);
+      const updatedSelected = updated.find(d => d.id === selectedDoctor?.id);
+      setSelectedDoctor(updatedSelected || null);
+    } else {
+      const newDoc = { id: Date.now(), ...doctorForm };
+      setDoctors(prev => [...prev, newDoc]);
+    }
+    resetDoctorForm();
+  };
+
+  const handleDoctorEdit = (doc) => {
+    setDoctorForm({ ...doc });
+    setEditingId(doc.id);
+    setMenuOpenId(null);
+  };
+
+  const handleDoctorDelete = (id) => {
+    const doc = doctors.find(d => d.id === id);
+    if (!doc) return;
+    if (!window.confirm(`Delete ${doc.name}?`)) return;
+    const remaining = doctors.filter(d => d.id !== id);
+    setDoctors(remaining);
+    if (selectedDoctor?.id === id) setSelectedDoctor(null);
+    if (editingId === id) resetDoctorForm();
+    setMenuOpenId(null);
   };
 
   return (
@@ -40,7 +91,7 @@ const Appointments = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
           
-          {/* LEFT: DOCTORS LIST */}
+          {/* LEFT: DOCTORS LIST + MANAGEMENT */}
           <div className="lg:col-span-2 space-y-4">
             <h3 className="font-black text-xl text-gray-700 mb-4">Available Doctors</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -48,10 +99,39 @@ const Appointments = () => {
                 <div 
                   key={doc.id}
                   onClick={() => setSelectedDoctor(doc)}
-                  className={`p-6 rounded-[35px] border-4 transition-all cursor-pointer shadow-sm ${
+                  className={`relative p-6 rounded-[35px] border-4 transition-all cursor-pointer shadow-sm ${
                     selectedDoctor?.id === doc.id ? 'border-blue-600 bg-blue-50' : 'border-white bg-white hover:border-blue-100'
                   }`}
                 >
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setMenuOpenId(menuOpenId === doc.id ? null : doc.id);
+                    }}
+                    className="absolute top-4 right-4 p-2 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 focus:outline-none border border-blue-100"
+                    aria-label="Doctor actions"
+                  >
+                    <MoreVertical size={18} />
+                  </button>
+
+                  {menuOpenId === doc.id && (
+                    <div className="absolute top-12 right-4 bg-white shadow-xl rounded-2xl border border-gray-100 z-10 w-36">
+                      <button
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-blue-50"
+                        onClick={(e) => { e.stopPropagation(); handleDoctorEdit(doc); }}
+                      >
+                        <Edit2 size={14} /> Edit
+                      </button>
+                      <button
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                        onClick={(e) => { e.stopPropagation(); handleDoctorDelete(doc.id); }}
+                      >
+                        <Trash2 size={14} /> Delete
+                      </button>
+                    </div>
+                  )}
+
                   <div className="flex items-center gap-4">
                     <span className="text-4xl bg-blue-100 p-3 rounded-2xl">{doc.image}</span>
                     <div>
@@ -75,6 +155,82 @@ const Appointments = () => {
                   </div>
                 </div>
               ))}
+            </div>
+
+            {/* Doctor Management Form */}
+            <div className="bg-white rounded-3xl border border-blue-100 p-6 mt-6 shadow-md">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="bg-blue-100 text-blue-700 w-8 h-8 rounded-full flex items-center justify-center">
+                  <Plus size={18} />
+                </div>
+                <div>
+                  <h4 className="font-black text-lg text-gray-800">Manage Doctors</h4>
+                  <p className="text-[11px] uppercase text-gray-400 font-bold tracking-wide">
+                    Add new doctor or edit existing
+                  </p>
+                </div>
+              </div>
+              <form onSubmit={handleDoctorSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <input
+                  className="px-4 py-3 rounded-2xl bg-gray-50 border border-gray-200 focus:border-blue-500 outline-none font-semibold"
+                  placeholder="Full name"
+                  value={doctorForm.name}
+                  onChange={(e) => setDoctorForm({ ...doctorForm, name: e.target.value })}
+                  required
+                />
+                <input
+                  className="px-4 py-3 rounded-2xl bg-gray-50 border border-gray-200 focus:border-blue-500 outline-none font-semibold"
+                  placeholder="Specialist (e.g. Cardiologist)"
+                  value={doctorForm.specialist}
+                  onChange={(e) => setDoctorForm({ ...doctorForm, specialist: e.target.value })}
+                  required
+                />
+                <input
+                  className="px-4 py-3 rounded-2xl bg-gray-50 border border-gray-200 focus:border-blue-500 outline-none font-semibold"
+                  placeholder="Fees (Rs.)"
+                  value={doctorForm.fees}
+                  onChange={(e) => setDoctorForm({ ...doctorForm, fees: e.target.value })}
+                  required
+                />
+                <input
+                  className="px-4 py-3 rounded-2xl bg-gray-50 border border-gray-200 focus:border-blue-500 outline-none font-semibold"
+                  placeholder="Available days (e.g. Mon - Thu)"
+                  value={doctorForm.days}
+                  onChange={(e) => setDoctorForm({ ...doctorForm, days: e.target.value })}
+                  required
+                />
+                <input
+                  className="px-4 py-3 rounded-2xl bg-gray-50 border border-gray-200 focus:border-blue-500 outline-none font-semibold"
+                  placeholder="Timing (e.g. 10:00 AM - 02:00 PM)"
+                  value={doctorForm.time}
+                  onChange={(e) => setDoctorForm({ ...doctorForm, time: e.target.value })}
+                  required
+                />
+                <input
+                  className="px-4 py-3 rounded-2xl bg-gray-50 border border-gray-200 focus:border-blue-500 outline-none font-semibold"
+                  placeholder="Emoji / Icon (e.g. 👨‍⚕️)"
+                  value={doctorForm.image}
+                  onChange={(e) => setDoctorForm({ ...doctorForm, image: e.target.value })}
+                />
+
+                <div className="md:col-span-2 flex flex-wrap gap-3 pt-2">
+                  <button
+                    type="submit"
+                    className="bg-blue-700 text-white px-6 py-3 rounded-2xl font-black uppercase tracking-wide shadow hover:bg-blue-800 active:scale-95"
+                  >
+                    {editingId ? 'Update Doctor' : 'Add Doctor'}
+                  </button>
+                  {editingId && (
+                    <button
+                      type="button"
+                      onClick={resetDoctorForm}
+                      className="px-6 py-3 rounded-2xl border border-gray-300 font-bold text-gray-600 hover:bg-gray-100 active:scale-95"
+                    >
+                      Cancel Edit
+                    </button>
+                  )}
+                </div>
+              </form>
             </div>
           </div>
 

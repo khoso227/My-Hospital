@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { Menu } from 'lucide-react';
 
 // Layout and Common Components
 import Sidebar from './components/Sidebar';
@@ -20,6 +21,11 @@ import PharmacyTab from './components/dashboard/PharmacyTab';
 import SettingsTab from './components/dashboard/SettingsTab';
 
 function App() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const closeSidebar = () => setIsSidebarOpen(false);
+  const toggleSidebar = () => setIsSidebarOpen((prev) => !prev);
+
   // Auth ko temporarily skip kar rahe hain — app direct dashboard par open hoga
   const handleLogout = () => {
     if (window.confirm("Are you sure you want to Logout?")) {
@@ -32,14 +38,41 @@ function App() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100 overflow-hidden font-sans">
-      <Sidebar onLogout={handleLogout} />
+    <div className="flex h-screen bg-gray-100 overflow-hidden font-sans relative">
+      {/* Mobile overlay */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-30 md:hidden"
+          onClick={closeSidebar}
+        />
+      )}
 
-      <div className="flex-1 overflow-auto">
+      {/* Mobile menu trigger (always available) */}
+      {!isSidebarOpen && (
+        <button
+          type="button"
+          onClick={toggleSidebar}
+          className="md:hidden fixed top-4 left-4 z-20 bg-blue-600 text-white p-3 rounded-full shadow-lg border border-white/20 active:scale-95"
+          aria-label="Open sidebar"
+        >
+          <Menu size={20} />
+        </button>
+      )}
+
+      <Sidebar
+        onLogout={handleLogout}
+        isMobileOpen={isSidebarOpen}
+        closeSidebar={closeSidebar}
+      />
+
+      <div className="flex-1 overflow-auto relative z-0">
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-          <Route path="/dashboard" element={<DashboardLayout />}>
+          <Route
+            path="/dashboard"
+            element={<DashboardLayout onToggleSidebar={toggleSidebar} />}
+          >
             <Route index element={<Overview />} />
             <Route path="staff" element={<Staff />} />
             <Route path="doctors" element={<DoctorsTab />} />
