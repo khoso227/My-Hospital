@@ -10,13 +10,19 @@ const Staff = () => {
         altMobile: '', address: '', extraColumn1: '', extraColumn2: ''
     });
 
+    const cacheKey = 'staff_offline';
+    const persistLocal = (list) => localStorage.setItem(cacheKey, JSON.stringify(list));
+
     // 1. Fetch Data
     const fetchStaff = async () => {
         try {
             const res = await api.get('/api/staff/all');
             setStaffList(res.data);
+            persistLocal(res.data);
         } catch (err) {
-            console.error("Fetch error:", err);
+            console.error("Fetch error, using cache:", err?.message);
+            const cached = localStorage.getItem(cacheKey);
+            if (cached) setStaffList(JSON.parse(cached));
         }
     };
 
@@ -32,7 +38,11 @@ const Staff = () => {
             setFormData({ name: '', profession: '', cnic: '', mobile: '', altMobile: '', address: '', extraColumn1: '', extraColumn2: '' });
             fetchStaff();
         } catch (err) {
-            alert(err.response?.data?.message || "Check Backend Connection!");
+            const localRecord = { ...formData, _id: Date.now().toString() };
+            const updated = [localRecord, ...staffList];
+            setStaffList(updated);
+            persistLocal(updated);
+            alert(err.response?.data?.message || "Backend offline. Saved locally.");
         } finally {
             setLoading(false);
         }
@@ -45,7 +55,10 @@ const Staff = () => {
                 await api.delete(`/api/staff/delete/${id}`);
                 fetchStaff();
             } catch (err) {
-                alert("Delete nahi ho saka!");
+                const updated = staffList.filter(s => (s._id || s.id) !== id);
+                setStaffList(updated);
+                persistLocal(updated);
+                alert("Backend offline. Removed locally.");
             }
         }
     };
@@ -70,13 +83,13 @@ const Staff = () => {
                     </thead>
                     <tbody>
                         {staffList.length > 0 ? staffList.map((s) => (
-                            <tr key={s._id} className="border-b hover:bg-blue-50/50 transition font-bold text-gray-700">
+                            <tr key={s._id || s.id} className="border-b hover:bg-blue-50/50 transition font-bold text-gray-700">
                                 <td className="p-5 uppercase">{s.name}</td>
                                 <td className="p-5"><span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-[9px] font-black">{s.profession}</span></td>
                                 <td className="p-5">{s.cnic}</td>
                                 <td className="p-5">{s.mobile}</td>
                                 <td className="p-5 text-center">
-                                    <button onClick={() => handleDelete(s._id)} className="text-red-500 hover:scale-125 transition-transform">
+                                    <button onClick={() => handleDelete(s._id || s.id)} className="text-red-500 hover:scale-125 transition-transform">
                                         <FaTrash size={16} />
                                     </button>
                                 </td>
