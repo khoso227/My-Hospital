@@ -34,7 +34,7 @@ const Sidebar = ({ isMobileOpen = false, closeSidebar, onLogout }) => {
   return (
     <div
       className={`
-        fixed inset-y-0 left-0 z-40 w-72 bg-blue-900 h-screen text-white flex flex-col shadow-2xl
+        fixed inset-y-0 left-0 z-40 w-72 bg-green-900 h-screen text-white flex flex-col shadow-2xl
         transform transition-transform duration-300 shrink-0
         ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}
         md:translate-x-0 md:relative
@@ -42,11 +42,11 @@ const Sidebar = ({ isMobileOpen = false, closeSidebar, onLogout }) => {
     >
       
       {/* 1. BRAND AREA (White-Label Enabled) */}
-      <div className="p-8 border-b border-blue-800 text-center">
-        <h1 className="text-2xl font-black tracking-tighter uppercase italic text-blue-50 leading-tight">
+      <div className="p-8 border-b border-green-800 text-center">
+        <h1 className="text-2xl font-black tracking-tighter uppercase italic text-green-50 leading-tight">
           {hospitalName}
         </h1>
-        <p className="text-[9px] text-blue-400 font-bold uppercase tracking-[4px] mt-2">
+        <p className="text-[9px] text-green-200 font-bold uppercase tracking-[4px] mt-2">
           Smart SaaS System
         </p>
       </div>
@@ -62,12 +62,12 @@ const Sidebar = ({ isMobileOpen = false, closeSidebar, onLogout }) => {
               className={({ isActive }) =>
                 `flex items-center px-6 py-4 rounded-2xl transition-all group ${
                   isActive
-                    ? 'bg-blue-600 text-white shadow-lg'
-                    : 'text-blue-300 hover:bg-blue-800 hover:text-white font-medium'
-                }`
-              }
-              onClick={closeSidebar}
-            >
+                  ? 'bg-green-600 text-white shadow-lg'
+                  : 'text-green-200 hover:bg-green-800 hover:text-white font-medium'
+              }`
+            }
+            onClick={closeSidebar}
+          >
               <LayoutDashboard className="w-5 h-5 mr-4 group-hover:scale-110 transition" />
               <span className="font-black uppercase text-[10px] tracking-widest">
                 {t('dashboard') || 'Dashboard'}
@@ -77,7 +77,7 @@ const Sidebar = ({ isMobileOpen = false, closeSidebar, onLogout }) => {
 
         {/* --- PATIENTS MANAGEMENT (Grouped Section) --- */}
         <div className="mb-6">
-          <p className="px-6 text-[9px] uppercase font-black text-blue-500 tracking-[4px] mb-3">
+          <p className="px-6 text-[9px] uppercase font-black text-green-400 tracking-[4px] mb-3">
             {t('patients') || 'Patients List'}
           </p>
           
@@ -86,11 +86,11 @@ const Sidebar = ({ isMobileOpen = false, closeSidebar, onLogout }) => {
               to="/patients"
               className={({ isActive }) =>
                 `flex items-center px-6 py-3 rounded-2xl transition-all ${
-                  isActive ? 'bg-blue-600 text-white shadow-lg' : 'text-blue-200 hover:bg-blue-800'
+                  isActive ? 'bg-green-600 text-white shadow-lg' : 'text-green-200 hover:bg-green-800'
                 }`
               }
-              onClick={closeSidebar}
-            >
+            onClick={closeSidebar}
+          >
               <List className="w-5 h-5 mr-4" />
               <span className="font-bold text-xs uppercase tracking-wider">All Records</span>
             </NavLink>
@@ -99,11 +99,11 @@ const Sidebar = ({ isMobileOpen = false, closeSidebar, onLogout }) => {
               to="/dashboard/patients"
               className={({ isActive }) =>
                 `flex items-center px-6 py-3 rounded-2xl transition-all ${
-                  isActive ? 'bg-blue-600 text-white shadow-lg' : 'text-blue-200 hover:bg-blue-800'
+                  isActive ? 'bg-green-600 text-white shadow-lg' : 'text-green-200 hover:bg-green-800'
                 }`
               }
-              onClick={closeSidebar}
-            >
+            onClick={closeSidebar}
+          >
               <UserPlus className="w-5 h-5 mr-4" />
               <span className="font-bold text-xs uppercase tracking-wider">{t('add_new') || 'Add New'}</span>
             </NavLink>
@@ -112,7 +112,7 @@ const Sidebar = ({ isMobileOpen = false, closeSidebar, onLogout }) => {
 
         {/* --- MEDICAL & STAFF SERVICES --- */}
         <div className="space-y-1">
-          <p className="px-6 text-[9px] uppercase font-black text-blue-500 tracking-[4px] mb-3">
+          <p className="px-6 text-[9px] uppercase font-black text-green-400 tracking-[4px] mb-3">
             Services
           </p>
 
@@ -121,7 +121,7 @@ const Sidebar = ({ isMobileOpen = false, closeSidebar, onLogout }) => {
             to="/dashboard/staff"
             className={({ isActive }) =>
               `flex items-center px-6 py-4 rounded-2xl transition-all ${
-                isActive ? 'bg-blue-600 text-white shadow-lg' : 'text-blue-200 hover:bg-blue-800'
+                isActive ? 'bg-green-600 text-white shadow-lg' : 'text-green-200 hover:bg-green-800'
               }`
             }
             onClick={closeSidebar}
@@ -134,7 +134,7 @@ const Sidebar = ({ isMobileOpen = false, closeSidebar, onLogout }) => {
             to="/dashboard/doctors"
             className={({ isActive }) =>
               `flex items-center px-6 py-4 rounded-2xl transition-all ${
-                isActive ? 'bg-blue-600 text-white shadow-lg' : 'text-blue-200 hover:bg-blue-800'
+                isActive ? 'bg-green-600 text-white shadow-lg' : 'text-green-200 hover:bg-green-800'
               }`
             }
             onClick={closeSidebar}
@@ -147,7 +147,7 @@ const Sidebar = ({ isMobileOpen = false, closeSidebar, onLogout }) => {
             to="/appointments"
             className={({ isActive }) =>
               `flex items-center px-6 py-4 rounded-2xl transition-all ${
-                isActive ? 'bg-blue-600 text-white shadow-lg' : 'text-blue-200 hover:bg-blue-800'
+                isActive ? 'bg-green-600 text-white shadow-lg' : 'text-green-200 hover:bg-green-800'
               }`
             }
             onClick={closeSidebar}
@@ -160,7 +160,7 @@ const Sidebar = ({ isMobileOpen = false, closeSidebar, onLogout }) => {
             to="/dashboard/labs"
             className={({ isActive }) =>
               `flex items-center px-6 py-4 rounded-2xl transition-all ${
-                isActive ? 'bg-blue-600 text-white shadow-lg' : 'text-blue-200 hover:bg-blue-800'
+                isActive ? 'bg-green-600 text-white shadow-lg' : 'text-green-200 hover:bg-green-800'
               }`
             }
             onClick={closeSidebar}
@@ -173,7 +173,7 @@ const Sidebar = ({ isMobileOpen = false, closeSidebar, onLogout }) => {
             to="/dashboard/pharmacy"
             className={({ isActive }) =>
               `flex items-center px-6 py-4 rounded-2xl transition-all ${
-                isActive ? 'bg-blue-600 text-white shadow-lg' : 'text-blue-200 hover:bg-blue-800'
+                isActive ? 'bg-green-600 text-white shadow-lg' : 'text-green-200 hover:bg-green-800'
               }`
             }
             onClick={closeSidebar}
@@ -185,10 +185,10 @@ const Sidebar = ({ isMobileOpen = false, closeSidebar, onLogout }) => {
       </nav>
 
       {/* 3. LOGOUT & FOOTER */}
-      <div className="p-6 border-t border-blue-800 space-y-6">
+      <div className="p-6 border-t border-green-800 space-y-6">
         <button 
           onClick={handleLogout}
-          className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-2xl text-blue-400 hover:bg-red-600 hover:text-white transition-all font-black uppercase text-[10px] tracking-widest border border-blue-800 hover:border-red-600 shadow-inner"
+          className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-2xl text-green-200 hover:bg-red-600 hover:text-white transition-all font-black uppercase text-[10px] tracking-widest border border-green-800 hover:border-red-600 shadow-inner"
         >
           <LogOut size={18} />
           <span>Logout System</span>

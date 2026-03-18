@@ -207,7 +207,7 @@ const DashboardLayout = ({ onToggleSidebar }) => {
     <div className={`flex flex-col h-screen overflow-hidden font-sans transition-colors duration-300 ${isDark ? 'bg-slate-900 text-slate-100' : 'bg-gray-50/80 text-gray-900'}`}>
 
       {/* HEADER */}
-      <header className="bg-gradient-to-r from-blue-800 to-blue-900 text-white px-4 md:px-10 py-4 flex justify-between items-center shadow-lg shrink-0">
+      <header className="bg-gradient-to-r from-green-700 to-green-800 text-white px-4 md:px-10 py-4 flex justify-between items-center shadow-lg shrink-0">
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -255,8 +255,8 @@ const DashboardLayout = ({ onToggleSidebar }) => {
               className={({ isActive }) =>
                 `flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black uppercase tracking-wide transition whitespace-nowrap ${
                   isActive
-                    ? 'bg-blue-600 text-white shadow-md scale-105'
-                    : 'text-gray-600 hover:bg-blue-50 hover:text-blue-700'
+                    ? 'bg-green-600 text-white shadow-md scale-105'
+                    : 'text-gray-600 hover:bg-green-50 hover:text-green-700'
                 }`
               }
             >

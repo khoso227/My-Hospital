@@ -109,13 +109,13 @@ const PatientsTab = () => {
                 <div className="flex gap-3">
                     <button 
                         onClick={() => { setEditingId(null); setFormData({ name: '', cell: '', disease: '', type: 'OPD', admissionDays: 0, status: 'Active', trackingId: '' }); setIsModalOpen(true); }} 
-                        className="bg-teal-600 text-white px-8 py-4 rounded-2xl font-black flex items-center gap-2 shadow-lg hover:scale-105 transition-all"
+                        className="bg-green-600 text-white px-8 py-4 rounded-2xl font-black flex items-center gap-2 shadow-lg hover:scale-105 transition-all"
                     >
                         <UserPlus size={24}/> NEW REGISTRATION
                     </button>
                     <button 
                         onClick={fetchPatients}
-                        className="bg-white border border-teal-200 text-teal-700 px-4 py-4 rounded-2xl font-black flex items-center gap-2 shadow hover:bg-teal-50 transition"
+                        className="bg-white border border-green-200 text-green-700 px-4 py-4 rounded-2xl font-black flex items-center gap-2 shadow hover:bg-green-50 transition"
                     >
                         Refresh
                     </button>
@@ -181,7 +181,7 @@ const PatientsTab = () => {
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-50">
                     <div className="bg-white rounded-[50px] w-full max-w-lg p-12 shadow-2xl animate-in zoom-in-95">
                         <div className="flex justify-between items-center mb-8">
-                            <h2 className="text-3xl font-black italic text-teal-700 uppercase border-b-4 border-teal-100 inline-block">Admission Form</h2>
+                            <h2 className="text-3xl font-black italic text-green-700 uppercase border-b-4 border-green-100 inline-block">Admission Form</h2>
                             <button onClick={() => setIsModalOpen(false)}><X size={30} className="text-gray-300 hover:text-black"/></button>
                         </div>
                         <form onSubmit={async (e) => {
