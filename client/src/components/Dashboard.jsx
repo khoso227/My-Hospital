@@ -93,9 +93,19 @@ const DashboardLayout = ({ onToggleSidebar }) => {
 
   const persistPatients = (list) => localStorage.setItem(patientCacheKey, JSON.stringify(list));
 
+  const loadPatientCache = () => {
+    const cached = localStorage.getItem(patientCacheKey);
+    if (cached) {
+      try { setPatients(JSON.parse(cached)); } catch {/* ignore parse errors */}
+    }
+  };
+
   const fetchPatients = async () => {
     try {
-      const res = await axios.get('https://my-hospital-odec.vercel.app/api/patients');
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 2500);
+      const res = await axios.get('https://my-hospital-odec.vercel.app/api/patients', { signal: controller.signal });
+      clearTimeout(timer);
       if (res.data?.success) {
         setPatients(res.data.data);
         persistPatients(res.data.data);
@@ -104,11 +114,10 @@ const DashboardLayout = ({ onToggleSidebar }) => {
     } catch (err) {
       console.log('Patient API unreachable, using cached data if available');
     }
-    const cached = localStorage.getItem(patientCacheKey);
-    if (cached) setPatients(JSON.parse(cached));
+    loadPatientCache();
   };
 
-  useEffect(() => { fetchPatients(); }, []);
+  useEffect(() => { loadPatientCache(); fetchPatients(); }, []);
 
   // Chart Data (Weekly Patient Flow)
   const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
