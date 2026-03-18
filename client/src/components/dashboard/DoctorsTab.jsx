@@ -10,34 +10,75 @@ const DoctorsTab = () => {
         name: '', degree: '', specialist: '', cell: '', timings: '', availableDays: '', extra1: '', extra2: ''
     });
 
+    const cacheKey = 'doctors_offline';
+    const persistLocal = (list) => localStorage.setItem(cacheKey, JSON.stringify(list));
+
     const fetchDoctors = async () => {
         try {
             const res = await axios.get('https://my-hospital-odec.vercel.app/api/doctors');
-            if (res.data.success) setDoctors(res.data.data);
-        } catch (err) { console.log(err); }
+            if (res.data?.success) {
+                setDoctors(res.data.data);
+                persistLocal(res.data.data);
+                return;
+            }
+        } catch (err) {
+            console.log('Doctor API down, using cache:', err?.message);
+        }
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) setDoctors(JSON.parse(cached));
     };
 
     useEffect(() => { fetchDoctors(); }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        const payload = { ...formData };
         try {
             if (editId) {
-                await axios.put(`https://my-hospital-odec.vercel.app/api/doctors/${editId}`, formData);
+                await axios.put(`https://my-hospital-odec.vercel.app/api/doctors/${editId}`, payload);
             } else {
-                await axios.post('https://my-hospital-odec.vercel.app/api/doctors/add', formData);
+                await axios.post('https://my-hospital-odec.vercel.app/api/doctors/add', payload);
             }
-            setIsModalOpen(false);
-            setEditId(null);
-            setFormData({ name: '', degree: '', specialist: '', cell: '', timings: '', availableDays: '', extra1: '', extra2: '' });
             fetchDoctors();
-        } catch (err) { alert("Action Failed"); }
+        } catch (err) {
+            // Offline/local fallback
+            const id = editId || Date.now().toString();
+            const updated = editId
+                ? doctors.map(d => (d._id || d.id) === editId ? { ...d, ...payload, _id: d._id || d.id } : d)
+                : [{ ...payload, _id: id }, ...doctors];
+            setDoctors(updated);
+            persistLocal(updated);
+        }
+        setIsModalOpen(false);
+        setEditId(null);
+        setFormData({ name: '', degree: '', specialist: '', cell: '', timings: '', availableDays: '', extra1: '', extra2: '' });
     };
 
     const handleEdit = (dr) => {
-        setEditId(dr._id);
-        setFormData(dr);
+        setEditId(dr._id || dr.id);
+        setFormData({
+            name: dr.name || '',
+            degree: dr.degree || '',
+            specialist: dr.specialist || '',
+            cell: dr.cell || '',
+            timings: dr.timings || '',
+            availableDays: dr.availableDays || '',
+            extra1: dr.extra1 || '',
+            extra2: dr.extra2 || ''
+        });
         setIsModalOpen(true);
+    };
+
+    const handleDelete = async (id) => {
+        if (!window.confirm('Delete this doctor?')) return;
+        try {
+            await axios.delete(`https://my-hospital-odec.vercel.app/api/doctors/${id}`);
+            fetchDoctors();
+        } catch (err) {
+            const updated = doctors.filter(d => (d._id || d.id) !== id);
+            setDoctors(updated);
+            persistLocal(updated);
+        }
     };
 
     return (
@@ -81,7 +122,7 @@ const DoctorsTab = () => {
                                 <td className="p-6 text-right">
                                     <div className="flex justify-end gap-2">
                                         <button onClick={() => handleEdit(dr)} className="bg-blue-50 text-blue-600 p-3 rounded-xl hover:bg-blue-600 hover:text-white transition-all"><Edit size={18}/></button>
-                                        <button className="bg-red-50 text-red-400 p-3 rounded-xl hover:bg-red-500 hover:text-white transition-all"><Trash2 size={18}/></button>
+                                        <button onClick={() => handleDelete(dr._id || dr.id)} className="bg-red-50 text-red-400 p-3 rounded-xl hover:bg-red-500 hover:text-white transition-all"><Trash2 size={18}/></button>
                                     </div>
                                 </td>
                             </tr>
