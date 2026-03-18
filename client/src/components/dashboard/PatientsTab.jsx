@@ -7,7 +7,7 @@ const PatientsTab = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isLetterOpen, setIsLetterOpen] = useState(false);
     const [selectedPatient, setSelectedPatient] = useState(null);
-    const [formData, setFormData] = useState({ name: '', cell: '', disease: '', type: 'OPD', admissionDays: 0, status: 'Active' });
+    const [formData, setFormData] = useState({ name: '', cell: '', disease: '', type: 'OPD', admissionDays: 0, status: 'Active', trackingId: '' });
     const [editingId, setEditingId] = useState(null);
     const [letterText, setLetterText] = useState('');
 
@@ -18,10 +18,20 @@ const PatientsTab = () => {
         localStorage.setItem('patients_offline', JSON.stringify(list));
     };
 
+    const loadCache = () => {
+        const cached = localStorage.getItem('patients_offline');
+        if (cached) {
+            try { setPatients(JSON.parse(cached)); } catch {}
+        }
+    };
+
     const fetchPatients = async () => {
         // Try API first, fallback to localStorage so records persist
         try {
-            const res = await axios.get('https://my-hospital-odec.vercel.app/api/patients');
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 2500);
+            const res = await axios.get('https://my-hospital-odec.vercel.app/api/patients', { signal: controller.signal });
+            clearTimeout(timer);
             if (res.data.success) {
                 setPatients(res.data.data);
                 persistLocal(res.data.data);
@@ -30,11 +40,11 @@ const PatientsTab = () => {
         } catch (err) {
             console.log("API fetch failed, using local cache:", err?.message);
         }
-        const cached = localStorage.getItem('patients_offline');
-        if (cached) setPatients(JSON.parse(cached));
+        loadCache();
     };
 
     useEffect(() => {
+        loadCache();
         fetchPatients();
     }, []);
 
@@ -70,7 +80,8 @@ const PatientsTab = () => {
             disease: p.disease || '',
             type: p.type || 'OPD',
             admissionDays: p.admissionDays || 0,
-            status: p.status || 'Active'
+            status: p.status || 'Active',
+            trackingId: p.trackingId || ''
         });
         setIsModalOpen(true);
     };
@@ -78,19 +89,26 @@ const PatientsTab = () => {
     const openPrintModal = (p) => {
         setSelectedPatient(p);
         setLetterText(
-            `To whom it may concern,\n\nThis certifies that patient ${p.name} (ID: #${(p._id || p.id || '').toString().slice(-6)}) who was registered for ${p.disease || 'medical treatment'} has reached the status of ${p.status}. Additional notes: ______________________`
+            `To whom it may concern,\n\nThis certifies that patient ${p.name} (Tracking: ${p.trackingId || (p._id || p.id || '').toString().slice(-6)}) who was registered for ${p.disease || 'medical treatment'} has reached the status of ${p.status}. Additional notes: ______________________`
         );
         setIsLetterOpen(true);
     };
+
+    const admittedCount = patients.filter(
+        p => p.type === 'Admit' && !['Discharged','Referred','Death','OPD Return'].includes(p.status)
+    ).length;
 
     return (
         <div className="p-6">
             {/* Header Section */}
             <div className="flex justify-between items-center mb-8 bg-white p-8 rounded-[35px] shadow-sm border-b-4 border-teal-500">
-                <h1 className="text-3xl font-black italic uppercase text-gray-800 tracking-tighter">Patient Lifecycle</h1>
+                <div>
+                    <h1 className="text-3xl font-black italic uppercase text-gray-800 tracking-tighter">Patient Lifecycle</h1>
+                    <p className="text-sm font-bold text-gray-500 mt-1">Admitted: {admittedCount} / 20 beds</p>
+                </div>
                 <div className="flex gap-3">
                     <button 
-                        onClick={() => { setEditingId(null); setFormData({ name: '', cell: '', disease: '', type: 'OPD', admissionDays: 0, status: 'Active' }); setIsModalOpen(true); }} 
+                        onClick={() => { setEditingId(null); setFormData({ name: '', cell: '', disease: '', type: 'OPD', admissionDays: 0, status: 'Active', trackingId: '' }); setIsModalOpen(true); }} 
                         className="bg-teal-600 text-white px-8 py-4 rounded-2xl font-black flex items-center gap-2 shadow-lg hover:scale-105 transition-all"
                     >
                         <UserPlus size={24}/> NEW REGISTRATION
@@ -116,6 +134,7 @@ const PatientsTab = () => {
                                 <h3 className="text-xl font-black text-gray-800">{p.name}</h3>
                                 <div className="flex gap-3 mt-1">
                                     <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest">{p.disease || 'General Case'}</span>
+                                    <span className="text-[10px] font-black uppercase text-blue-500 tracking-widest">ID: {p.trackingId || (p._id || p.id || '').toString().slice(-6)}</span>
                                     <span className={`text-[10px] font-black uppercase px-2 rounded ${p.status === 'Active' ? 'text-green-500 bg-green-50' : 'text-red-500 bg-red-50'}`}>
                                         {p.status}
                                     </span>
@@ -167,21 +186,22 @@ const PatientsTab = () => {
                         </div>
                         <form onSubmit={async (e) => {
                             e.preventDefault();
+                            const trackingId = formData.trackingId?.trim() || `PT-${Date.now().toString().slice(-6)}`;
                             try {
                                 if (editingId) {
-                                    await axios.put(`https://my-hospital-odec.vercel.app/api/patients/${editingId}`, formData);
+                                    await axios.put(`https://my-hospital-odec.vercel.app/api/patients/${editingId}`, { ...formData, trackingId });
                                 } else {
-                                    await axios.post('https://my-hospital-odec.vercel.app/api/patients/add', formData);
+                                    await axios.post('https://my-hospital-odec.vercel.app/api/patients/add', { ...formData, trackingId });
                                 }
                                 fetchPatients();
                             } catch (err) {
                                 // offline fallback
                                 if (editingId) {
-                                    const updated = patients.map(p => (p._id || p.id) === editingId ? { ...p, ...formData } : p);
+                                    const updated = patients.map(p => (p._id || p.id) === editingId ? { ...p, ...formData, trackingId } : p);
                                     setPatients(updated);
                                     persistLocal(updated);
                                 } else {
-                                    const newRecord = { ...formData, _id: Date.now().toString(), status: 'Active' };
+                                    const newRecord = { ...formData, trackingId, _id: Date.now().toString(), status: 'Active' };
                                     const updated = [newRecord, ...patients];
                                     setPatients(updated);
                                     persistLocal(updated);
@@ -189,11 +209,12 @@ const PatientsTab = () => {
                             }
                             setIsModalOpen(false); 
                             setEditingId(null);
-                            setFormData({ name: '', cell: '', disease: '', type: 'OPD', admissionDays: 0, status: 'Active' });
+                            setFormData({ name: '', cell: '', disease: '', type: 'OPD', admissionDays: 0, status: 'Active', trackingId: '' });
                         }} className="space-y-4">
                             <input value={formData.name} placeholder="Patient Name" className="w-full border-2 p-5 rounded-3xl font-bold outline-none focus:border-teal-500" required onChange={e => setFormData({...formData, name: e.target.value})} />
                             <input value={formData.cell} placeholder="Mobile / Cell" className="w-full border-2 p-5 rounded-3xl font-bold outline-none focus:border-teal-500" required onChange={e => setFormData({...formData, cell: e.target.value})} />
                             <input value={formData.disease} placeholder="Reason / Disease" className="w-full border-2 p-5 rounded-3xl font-bold outline-none focus:border-teal-500" onChange={e => setFormData({...formData, disease: e.target.value})} />
+                            <input value={formData.trackingId} placeholder="Tracking ID (auto if empty)" className="w-full border-2 p-5 rounded-3xl font-bold outline-none focus:border-teal-500" onChange={e => setFormData({...formData, trackingId: e.target.value})} />
                             <div className="grid grid-cols-2 gap-4">
                                 <select value={formData.type} className="border-2 p-5 rounded-3xl font-bold bg-gray-50 outline-none" onChange={e => setFormData({...formData, type: e.target.value})}>
                                     <option value="OPD">OPD Visit</option>
