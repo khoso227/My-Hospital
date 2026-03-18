@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { UserPlus, Printer, Trash2, X, Plus, FileText, Edit2 } from 'lucide-react';
 
 const PatientsTab = () => {
     const [patients, setPatients] = useState([]);
+    const [search, setSearch] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isLetterOpen, setIsLetterOpen] = useState(false);
     const [selectedPatient, setSelectedPatient] = useState(null);
@@ -98,6 +99,32 @@ const PatientsTab = () => {
         p => p.type === 'Admit' && !['Discharged','Referred','Death','OPD Return'].includes(p.status)
     ).length;
 
+    const filteredPatients = useMemo(() => {
+        const term = search.toLowerCase();
+        return patients.filter(p =>
+            (p.name || '').toLowerCase().includes(term) ||
+            (p.cell || '').toLowerCase().includes(term) ||
+            (p.disease || '').toLowerCase().includes(term) ||
+            (p.trackingId || '').toLowerCase().includes(term)
+        );
+    }, [patients, search]);
+
+    const exportCSV = () => {
+        if (patients.length === 0) return alert('No data to export');
+        const header = ['Name','Cell','Disease','Type','Status','TrackingId','AdmissionDays'];
+        const rows = patients.map(p => [
+            p.name, p.cell, p.disease, p.type, p.status, p.trackingId || (p._id || p.id || '').toString().slice(-6), p.admissionDays || ''
+        ]);
+        const csv = [header, ...rows].map(r => r.map(x => `"${(x ?? '').toString().replace(/"/g,'""')}"`).join(',')).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'patients.csv';
+        link.click();
+        URL.revokeObjectURL(url);
+    };
+
     return (
         <div className="p-6">
             {/* Header Section */}
@@ -107,6 +134,12 @@ const PatientsTab = () => {
                     <p className="text-sm font-bold text-gray-500 mt-1">Admitted: {admittedCount} / 20 beds</p>
                 </div>
                 <div className="flex gap-3">
+                    <input
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder="Search name / phone / disease / tracking"
+                        className="px-4 py-3 rounded-2xl border border-gray-200 text-sm font-semibold w-64"
+                    />
                     <button 
                         onClick={() => { setEditingId(null); setFormData({ name: '', cell: '', disease: '', type: 'OPD', admissionDays: 0, status: 'Active', trackingId: '' }); setIsModalOpen(true); }} 
                         className="bg-green-600 text-white px-8 py-4 rounded-2xl font-black flex items-center gap-2 shadow-lg hover:scale-105 transition-all"
@@ -119,12 +152,18 @@ const PatientsTab = () => {
                     >
                         Refresh
                     </button>
+                    <button
+                        onClick={exportCSV}
+                        className="bg-white border border-gray-200 text-gray-700 px-4 py-4 rounded-2xl font-black flex items-center gap-2 shadow hover:bg-gray-50 transition"
+                    >
+                        Export CSV
+                    </button>
                 </div>
             </div>
 
             {/* Patients List Area */}
             <div className="grid grid-cols-1 gap-4">
-                {patients.map(p => (
+                {filteredPatients.map(p => (
                     <div key={p._id || p.id} className="bg-white p-6 rounded-[35px] border-2 border-transparent hover:border-teal-100 shadow-sm flex items-center justify-between transition-all group">
                         <div className="flex items-center gap-6">
                             <div className={`w-16 h-16 rounded-[20px] flex items-center justify-center font-black text-xl shadow-inner ${p.type === 'Admit' ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600'}`}>
