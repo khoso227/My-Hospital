@@ -187,9 +187,13 @@ const DashboardLayout = ({ onToggleSidebar }) => {
   };
 
   // Derived counts
-  const admittedCount = patients.filter(
-    (p) => p.type === 'Admit' && !['Discharged', 'Referred', 'Death', 'OPD Return'].includes(p.status)
-  ).length;
+  const admittedCount = patients.filter((p) => {
+    const typeNorm = (p.type || '').trim().toLowerCase();
+    const statusNorm = (p.status || '').trim();
+    const isAdmit = typeNorm.includes('admit') || typeNorm.includes('ward');
+    const isClosed = ['Discharged', 'Referred', 'Death', 'OPD Return'].includes(statusNorm);
+    return isAdmit && !isClosed;
+  }).length;
   const bedsAvailable = totalBeds - admittedCount;
   const beds = Array.from({ length: totalBeds }, (_, i) => ({
     id: i + 1,
