@@ -20,22 +20,49 @@ import LabsTab from './components/dashboard/LabsTab';
 import PharmacyTab from './components/dashboard/PharmacyTab';
 import SettingsTab from './components/dashboard/SettingsTab';
 
+const Landing = ({ onEnter }) => (
+  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 via-blue-800 to-slate-900 text-white">
+    <div className="text-center space-y-8 max-w-lg px-6">
+      <div className="bg-white/10 border border-white/20 w-24 h-24 rounded-3xl mx-auto flex items-center justify-center shadow-2xl">
+        <span className="text-4xl font-black">🏥</span>
+      </div>
+      <div>
+        <h1 className="text-4xl font-black tracking-tight uppercase">Hospital Pro</h1>
+        <p className="text-sm uppercase font-bold text-blue-200 tracking-[4px] mt-2">
+          Smart Hospital SaaS System
+        </p>
+      </div>
+      <button
+        onClick={onEnter}
+        className="bg-white text-blue-800 px-8 py-4 rounded-2xl font-black uppercase tracking-wide shadow-xl hover:scale-105 transition-all"
+      >
+        Enter Dashboard
+      </button>
+    </div>
+  </div>
+);
+
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
 
   const closeSidebar = () => setIsSidebarOpen(false);
   const toggleSidebar = () => setIsSidebarOpen((prev) => !prev);
 
-  // Auth ko temporarily skip kar rahe hain — app direct dashboard par open hoga
   const handleLogout = () => {
     if (window.confirm("Are you sure you want to Logout?")) {
       localStorage.removeItem('isAdmin');
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       localStorage.removeItem('role');
-      window.location.href = '/dashboard';
+      setIsAuthenticated(false);
+      setIsSidebarOpen(false);
     }
   };
+
+  if (!isAuthenticated) {
+    return <Landing onEnter={() => { setIsAuthenticated(true); window.location.href = '/dashboard'; }} />;
+  }
 
   return (
     <div className="flex h-screen bg-gray-100 overflow-hidden font-sans relative">
@@ -82,35 +109,35 @@ function App() {
             <Route path="settings" element={<SettingsTab />} />
           </Route>
 
-          <Route path="/patients" element={<Patients />} />
-          <Route path="/add-patient" element={<AddPatient />} />
-          <Route path="/appointments" element={<Appointments />} />
+        <Route path="/patients" element={<Patients />} />
+        <Route path="/add-patient" element={<AddPatient />} />
+        <Route path="/appointments" element={<Appointments />} />
 
-          <Route
-            path="*"
-            element={
-              <div className="flex flex-col items-center justify-center h-full bg-white">
-                <div className="text-center animate-in fade-in zoom-in duration-500">
-                  <h1 className="text-[150px] font-black text-gray-100 leading-none">404</h1>
-                  <div className="bg-blue-600 text-white px-4 py-1 rounded-lg font-black uppercase text-xs tracking-[5px] inline-block -mt-10 mb-8">
-                    Page Not Found
-                  </div>
-                  <p className="text-gray-500 font-bold mb-8">
-                    Oops! The page you are looking for doesn't exist.
-                  </p>
-                  <button
-                    onClick={() => window.location.href = '/dashboard'}
-                    className="bg-blue-600 text-white px-10 py-4 rounded-2xl font-black shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all uppercase italic tracking-tighter"
-                  >
-                    Back to Safe Zone
-                  </button>
+        <Route
+          path="*"
+          element={
+            <div className="flex flex-col items-center justify-center h-full bg-white">
+              <div className="text-center animate-in fade-in zoom-in duration-500">
+                <h1 className="text-[150px] font-black text-gray-100 leading-none">404</h1>
+                <div className="bg-blue-600 text-white px-4 py-1 rounded-lg font-black uppercase text-xs tracking-[5px] inline-block -mt-10 mb-8">
+                  Page Not Found
                 </div>
+                <p className="text-gray-500 font-bold mb-8">
+                  Oops! The page you are looking for doesn't exist.
+                </p>
+                <button
+                  onClick={() => window.location.href = '/dashboard'}
+                  className="bg-blue-600 text-white px-10 py-4 rounded-2xl font-black shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all uppercase italic tracking-tighter"
+                >
+                  Back to Safe Zone
+                </button>
               </div>
-            }
-          />
-        </Routes>
-      </div>
+            </div>
+          }
+        />
+      </Routes>
     </div>
+  </div>
   );
 }
 
