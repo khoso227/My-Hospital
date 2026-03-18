@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Line } from 'react-chartjs-2';
+import axios from 'axios';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -46,6 +47,18 @@ const DashboardLayout = ({ onToggleSidebar }) => {
     document.body.dir = (lng === 'ur' || lng === 'sd') ? 'rtl' : 'ltr';
   };
 
+  // Theme (Day/Night)
+  const [isDark, setIsDark] = useState(() => localStorage.getItem('theme') === 'dark');
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDark]);
+
   // Save Settings
   const handleSaveSettings = () => {
     setLoadingSave(true);
@@ -72,17 +85,30 @@ const DashboardLayout = ({ onToggleSidebar }) => {
     { id: 'settings', name: 'Settings', path: '/dashboard/settings', icon: <Settings size={18} /> },
   ];
 
-  // Dummy Data
-  const beds = Array.from({ length: 20 }, (_, i) => ({
-    id: i + 1,
-    status: i < 8 ? 'Occupied' : 'Available',
-  }));
+  // Live Patients (with offline cache)
+  const totalBeds = 20;
+  const [patients, setPatients] = useState([]);
 
-  const samplePatients = [
-    { id: 101, name: 'Ali Ahmed', status: 'OPD', disease: 'Flu / Fever' },
-    { id: 102, name: 'Zahid Khan', status: 'Admitted', disease: 'Chest Infection' },
-    { id: 103, name: 'Meer Khan', status: 'Admitted', disease: 'Surgery Recovery' },
-  ];
+  const patientCacheKey = 'patients_offline';
+
+  const persistPatients = (list) => localStorage.setItem(patientCacheKey, JSON.stringify(list));
+
+  const fetchPatients = async () => {
+    try {
+      const res = await axios.get('https://my-hospital-odec.vercel.app/api/patients');
+      if (res.data?.success) {
+        setPatients(res.data.data);
+        persistPatients(res.data.data);
+        return;
+      }
+    } catch (err) {
+      console.log('Patient API unreachable, using cached data if available');
+    }
+    const cached = localStorage.getItem(patientCacheKey);
+    if (cached) setPatients(JSON.parse(cached));
+  };
+
+  useEffect(() => { fetchPatients(); }, []);
 
   // Chart Data (Weekly Patient Flow)
   const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -138,9 +164,19 @@ const DashboardLayout = ({ onToggleSidebar }) => {
     setShowPrescriptionModal(null);
   };
 
+  // Derived counts
+  const admittedCount = patients.filter(
+    (p) => p.type === 'Admit' && !['Discharged', 'Referred', 'Death', 'OPD Return'].includes(p.status)
+  ).length;
+  const bedsAvailable = totalBeds - admittedCount;
+  const beds = Array.from({ length: totalBeds }, (_, i) => ({
+    id: i + 1,
+    status: i < admittedCount ? 'Occupied' : 'Available',
+  }));
+
   // ──────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-gray-50/80 font-sans">
+    <div className={`flex flex-col h-screen overflow-hidden font-sans transition-colors duration-300 ${isDark ? 'bg-slate-900 text-slate-100' : 'bg-gray-50/80 text-gray-900'}`}>
 
       {/* HEADER */}
       <header className="bg-gradient-to-r from-blue-800 to-blue-900 text-white px-4 md:px-10 py-4 flex justify-between items-center shadow-lg shrink-0">
@@ -159,6 +195,13 @@ const DashboardLayout = ({ onToggleSidebar }) => {
           </div>
         </div>
         <div className="flex gap-2.5">
+          <button
+            type="button"
+            onClick={() => setIsDark(!isDark)}
+            className="px-4 py-1.5 rounded text-xs font-black uppercase transition shadow-md bg-white/10 border border-white/20 hover:bg-white/20 active:scale-95"
+          >
+            {isDark ? 'Day' : 'Night'}
+          </button>
           {['en', 'ur', 'sd'].map(lng => (
             <button
               key={lng}
@@ -174,7 +217,7 @@ const DashboardLayout = ({ onToggleSidebar }) => {
       </header>
 
       {/* TABS */}
-      <nav className="bg-white border-b shadow-sm shrink-0 overflow-x-auto">
+      <nav className={`${isDark ? 'bg-slate-800 border-slate-700 text-slate-100' : 'bg-white border-b'} shadow-sm shrink-0 overflow-x-auto`}>
         <div className="px-6 md:px-10 py-3 flex gap-3">
           {tabs.map(tab => (
             <NavLink
@@ -197,7 +240,7 @@ const DashboardLayout = ({ onToggleSidebar }) => {
       </nav>
 
       {/* MAIN CONTENT */}
-      <main className="flex-1 p-6 md:p-8 overflow-y-auto">
+      <main className={`flex-1 p-6 md:p-8 overflow-y-auto ${isDark ? 'bg-slate-900 text-slate-100' : ''}`}>
 
         {location.pathname === '/dashboard/settings' ? (
 
@@ -322,28 +365,28 @@ const DashboardLayout = ({ onToggleSidebar }) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
               {[
                 { title: 'Revenue Today', value: 'Rs. 25,000', color: 'blue' },
-                { title: 'Admitted Patients', value: samplePatients.filter(p => p.status === 'Admitted').length, color: 'red' },
-                { title: 'Beds Available', value: `${beds.filter(b => b.status === 'Available').length}/20`, color: 'green' },
+                { title: 'Admitted Patients', value: admittedCount, color: 'red' },
+                { title: 'Beds Available', value: `${bedsAvailable}/${totalBeds}`, color: 'green' },
                 { title: 'Pending Labs', value: '49', color: 'purple' },
               ].map((item, i) => (
-                <div key={i} className={`bg-white rounded-2xl shadow-lg p-6 border-t-4 border-${item.color}-600`}>
-                  <p className="text-xs font-bold uppercase text-gray-500 tracking-wide">{item.title}</p>
-                  <p className="text-3xl font-black mt-2 text-gray-800">{item.value}</p>
+                <div key={i} className={`${isDark ? 'bg-slate-800 text-slate-100' : 'bg-white text-gray-800'} rounded-2xl shadow-lg p-6 border-t-4 border-${item.color}-600`}>
+                  <p className={`text-xs font-bold uppercase tracking-wide ${isDark ? 'text-slate-300' : 'text-gray-500'}`}>{item.title}</p>
+                  <p className="text-3xl font-black mt-2">{item.value}</p>
                 </div>
               ))}
             </div>
 
             {/* Weekly Patient Flow Chart */}
-            <div className="bg-white rounded-3xl shadow-xl p-6 md:p-8 border border-gray-100">
-              <h3 className="text-xl md:text-2xl font-black text-gray-800 mb-6">Weekly Patient Flow</h3>
+            <div className={`${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-100'} rounded-3xl shadow-xl p-6 md:p-8 border`}>
+              <h3 className={`text-xl md:text-2xl font-black mb-6 ${isDark ? 'text-slate-100' : 'text-gray-800'}`}>Weekly Patient Flow</h3>
               <div className="h-80 md:h-96">
                 <Line data={chartData} options={chartOptions} />
               </div>
             </div>
 
             {/* Bed Map */}
-            <div className="bg-white rounded-3xl shadow-xl p-6 md:p-8">
-              <h3 className="text-xl font-black uppercase mb-6 flex items-center gap-3 text-gray-800">
+            <div className={`${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white'} rounded-3xl shadow-xl p-6 md:p-8`}>
+              <h3 className={`text-xl font-black uppercase mb-6 flex items-center gap-3 ${isDark ? 'text-slate-100' : 'text-gray-800'}`}>
                 <HiHome className="text-blue-600" /> Ward Bed Occupancy
               </h3>
               <div className="grid grid-cols-5 sm:grid-cols-10 gap-3">
@@ -352,8 +395,8 @@ const DashboardLayout = ({ onToggleSidebar }) => {
                     key={bed.id}
                     className={`aspect-square rounded-2xl flex flex-col items-center justify-center text-xs font-black border transition-all ${
                       bed.status === 'Available'
-                        ? 'bg-green-50 border-green-200 text-green-700 hover:scale-105'
-                        : 'bg-red-50 border-red-200 text-red-700 opacity-70'
+                        ? `${isDark ? 'bg-green-950/40 border-green-700 text-green-200' : 'bg-green-50 border-green-200 text-green-700'} hover:scale-105`
+                        : `${isDark ? 'bg-red-950/40 border-red-700 text-red-200 opacity-80' : 'bg-red-50 border-red-200 text-red-700 opacity-70'}`
                     }`}
                   >
                     <HeartPulse size={18} />
