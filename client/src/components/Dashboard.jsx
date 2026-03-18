@@ -49,6 +49,7 @@ const DashboardLayout = ({ onToggleSidebar }) => {
 
   // Theme (Day/Night)
   const [isDark, setIsDark] = useState(() => localStorage.getItem('theme') === 'dark');
+  const [isHighContrast, setIsHighContrast] = useState(() => localStorage.getItem('hc') === '1');
   useEffect(() => {
     if (isDark) {
       document.documentElement.classList.add('dark');
@@ -58,6 +59,16 @@ const DashboardLayout = ({ onToggleSidebar }) => {
       localStorage.setItem('theme', 'light');
     }
   }, [isDark]);
+
+  useEffect(() => {
+    if (isHighContrast) {
+      document.documentElement.classList.add('hc');
+      localStorage.setItem('hc', '1');
+    } else {
+      document.documentElement.classList.remove('hc');
+      localStorage.setItem('hc', '0');
+    }
+  }, [isHighContrast]);
 
   // Save Settings
   const handleSaveSettings = () => {
@@ -88,6 +99,7 @@ const DashboardLayout = ({ onToggleSidebar }) => {
   // Live Patients (with offline cache)
   const totalBeds = 20;
   const [patients, setPatients] = useState([]);
+  const [bedsLive, setBedsLive] = useState([]);
 
   const patientCacheKey = 'patients_offline';
 
@@ -118,6 +130,20 @@ const DashboardLayout = ({ onToggleSidebar }) => {
   };
 
   useEffect(() => { loadPatientCache(); fetchPatients(); }, []);
+
+  const fetchBeds = async () => {
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 2500);
+      const res = await axios.get('https://my-hospital-odec.vercel.app/api/beds', { signal: controller.signal });
+      clearTimeout(timer);
+      if (res.data?.success) setBedsLive(res.data.data);
+    } catch {
+      setBedsLive([]);
+    }
+  };
+
+  useEffect(() => { fetchBeds(); }, []);
 
   // Chart Data (Weekly Patient Flow) based on available patient records
   const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -195,10 +221,12 @@ const DashboardLayout = ({ onToggleSidebar }) => {
     return isAdmit && !isClosed;
   }).length;
   const bedsAvailable = totalBeds - admittedCount;
-  const beds = Array.from({ length: totalBeds }, (_, i) => ({
-    id: i + 1,
-    status: i < admittedCount ? 'Occupied' : 'Available',
-  }));
+  const beds = bedsLive.length
+    ? bedsLive.map(b => ({ id: b.bedNumber?.replace('B-','') || b.bedNumber || '?', status: b.status }))
+    : Array.from({ length: totalBeds }, (_, i) => ({
+        id: i + 1,
+        status: i < admittedCount ? 'Occupied' : 'Available',
+      }));
   const totalPatients = patients.length;
   const activePatients = patients.filter(p => p.status === 'Active').length;
 
@@ -229,6 +257,13 @@ const DashboardLayout = ({ onToggleSidebar }) => {
             className="px-4 py-1.5 rounded text-xs font-black uppercase transition shadow-md bg-white/10 border border-white/20 hover:bg-white/20 active:scale-95"
           >
             {isDark ? 'Day' : 'Night'}
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsHighContrast(!isHighContrast)}
+            className="px-4 py-1.5 rounded text-xs font-black uppercase transition shadow-md bg-white/10 border border-white/20 hover:bg-white/20 active:scale-95"
+          >
+            {isHighContrast ? 'Normal' : 'High Contrast'}
           </button>
           {['en', 'ur', 'sd'].map(lng => (
             <button
