@@ -194,6 +194,7 @@ const PatientsTab = () => {
                                         <option value="Referred">Referred</option>
                                         <option value="Death">Death</option>
                                         <option value="OPD Return">OPD Return</option>
+                                        <option value="Patient History">Patient History</option>
                                     </select>
                                     <button onClick={() => openEdit(p)} className="px-4 py-3 rounded-2xl bg-white border text-gray-600 hover:bg-gray-100 flex items-center gap-2 text-xs font-black uppercase">
                                         <Edit2 size={14}/> Edit
